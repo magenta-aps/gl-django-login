@@ -1,0 +1,9 @@
+version: "3.4"
+services:
+  test:
+    container_name: GlDjangoLogin
+    image: gldjangologin:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    command: python -m unittest
