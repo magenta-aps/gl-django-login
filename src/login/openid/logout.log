@@ -1,0 +1,53 @@
+Fungerede efter en weekend
+==========================
+
+
+Deaktiver cache
+34 requests
+2,03 MB af 1,01 MB overført
+Færdig: 19,41 s
+DOMContentLoaded: 4,09 s
+load: 6,50 s
+
+GET
+	https://login.sullissivik.gl/connect/endsession?scope=openid digitalimik&client_id=sullissivik_company_tax&redirect_uri=https://akap.sullissivik.gl/oid/logout/&id_token_hint=eyJhbGciOiJSUzI1NiIsImtpZCI6IjQ0NUZFMjcxNEY4QzYxRUU3MjcwRDA5QkZDQTNFMUJCNDhDODY1RTQiLCJ0eXAiOiJKV1QiLCJ4NXQiOiJSRl9pY1UtTVllNXljTkNiX0tQaHUwaklaZVEifQ.eyJuYmYiOjE2MDA5MzgzMjYsImV4cCI6MTYwMDkzODYyNiwiaXNzIjoiaHR0cHM6Ly9sb2dpbi5zdWxsaXNzaXZpay5nbCIsImF1ZCI6InN1bGxpc3NpdmlrX2NvbXBhbnlfdGF4Iiwibm9uY2UiOiJMY1NYVUJjdUlkSmNBMU5kYklwT3pBYmNVc25wTHNLZiIsImlhdCI6MTYwMDkzODMyNiwiYXRfaGFzaCI6ImxXTDhubi1RbEdCUHVwZ3ZHUFFxYWciLCJzaWQiOiI3M2ExOGIzYjg2ODNiYzI4MTA3ZWI0MmIwYWE0ZGVkNiIsInN1YiI6ImRpZ2l0YWxpbWlrOjQxYmRlNmM1LTFjNWItNDQ1NS1hMzRjLTc0M2FkZDJiMTE3MCIsImF1dGhfdGltZSI6MTYwMDkzODMyNSwiaWRwIjoiZGlnaXRhbGltaWsiLCJhbXIiOlsiZXh0ZXJuYWwiXX0.ax62RSn2CjcPeaKZysDt6lqaG3ez_xZ27kbjLgGxsAFdCavix9uQ2DoGRGyyAb-l8xc8mNlMv1tOxRmYAYZtzHsUYBUT3wRjnk1w_Jkg8jGCPgumr-Srp25sNBXNWKINzmcf01oG8LtkoaKB_CKjCB9NZ9i2qZEDQAdcrnZCyJi8HhqrkbGK30L_tEo0ZvsnBpMKZuzv1_b4HcYu12Shn8ldCq_rDerJ8f1kZz4Nxe7lRYZvV7Hd0h0-v9fC5LCFjzVEiqc3f4NPhU__soPC-weNhplQvQDgODNp5ZRcxX8sua5g9ogiQI-kq4CfF6-xPSvxxS0zDN2aReVlfBH8tQ&post_logout_redirect_uri=https://akap.sullissivik.gl/&state=bmscz916Eh4xTZAMU8vNmx2XLXN92Umy&id_token={'nbf': 1600938326, 'exp': 1600938626, 'iss': 'https://login.sullissivik.gl', 'aud': ['sullissivik_company_tax'], 'nonce': 'LcSXUBcuIdJcA1NdbIpOzAbcUsnpLsKf', 'iat': 1600938326, 'at_hash': 'lWL8nn-QlGBPupgvGPQqag', 'sid': '73a18b3b8683bc28107eb42b0aa4ded6', 'sub': 'digitalimik:41bde6c5-1c5b-4455-a34c-743add2b1170', 'auth_time': 1600938325, 'idp': 'digitalimik', 'amr': ['external']}
+Status302
+Found
+VersionHTTP/2
+Overført2,48 KB (1,52 KB størrelse)
+Referrer-politik no-referrer-when-downgrade
+
+
+content-length
+	0
+content-security-policy
+	script-src 'self' https://www.sullissivik.gl 'unsafe-inline';style-src 'self' https://www.sullissivik.gl 'nonce-ORwO5vUJflsNDj/ylCKPWMXzWCGs5/tnuYy0w7Y+8iQ='
+date
+	Mon, 05 Oct 2020 06:13:46 GMT
+location
+	https://login.sullissivik.gl/Account/Logout?logoutId=CfDJ8EUkgX42ydVJuW85HhtFDP9YzGgwP2s2XguPCHvFOjrGk8QvoxQab5TAKm_LKTo3ZBWXhvvGaOKn_moBSSW09isHz580ppFjx4qKNUH2fqPLZRTJlo7NxQM4orYVei_gJHFLHZiYqZyD3CdjIoiuFXDJnyC5M4rAO3IlLzQVgGx9USsvOO6IPjQYiCjQ1hED5nKLpsik6I8t6_Iz5w1KdAgNXdu-0bitL8B7dqcgEa-wzKtouTtYMIsiU0Nl9msJRcDDvJS0kNx4NNXcGmQ1mjIgN885bfROEoYWzwPpiws2OdDsHsYmVxhn7E5qpz2yhQGYhn4Y1rj2CIfifuvWxygqVkN6DwXtrx3D8y_DLk43_OoUBMShrqoaN6_F53TugU0iyT8ux8HWCdMTWKTPb4MZbDlXG5jeFDJkf0P5jzdAM1c97s3cRrUFhQsCMhTOHKXCkGy…3qBDSxzJVEIpre6GS-TQd0_AvTlgBWJdjv8j-WAxatDhB4jA2kGW3Tlw0DflNrvmPH0SxlhtxF5RHJwOQavyzKYaFlzoTzQhLLvXgBxZmHu9AjCi2b8DLnwESeECdcyxxnYuHT8c029_QImckRDd7aySmrCmoc_3Q461kGFMlKsuddC4c6b1QSawKU1GwDuHMAhJs5quwFnjmJAkxEFFvvtO7U_wRXsMYgLKWd0ulanqH_yJkSgsccqfU6noW-tu9WuE68SHwwDk3y84yu_wsHGypgorJOStQESyu9aFn4mVZ5_K7KSzRqbmwRJcirzNlgFTC6cqgwgcMmDLePHGo3_Yjb-MkJ8buUWX_JNkvBEQcdCLflBsrc1BXDqPGTRnhBxR4AuUT5v4ka0z72NIa1a_cKc4ETvzTtTa0InImwbJE4KlV4aYPKh2B1KcUaSsHwt1Y37avCgU1HGkKo0K9VXHnLd_BGK-lTZDiZSYogMZPWAcdr2tV3KXNHiYrZ_z
+server
+	Kestrel
+X-Firefox-Spdy
+	h2
+x-powered-by
+	ASP.NET
+
+Accept
+	text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Encoding
+	gzip, deflate, br
+Accept-Language
+	da,en-US;q=0.7,en;q=0.3
+Connection
+	keep-alive
+Cookie
+	Sullissivik.Portal.Lang=da-DK; .AspNetCore.Antiforgery.AWEehMkUAMY=CfDJ8EUkgX42ydVJuW85HhtFDP8pcO-uraXZ8Sas_T6UWU8K174MnixmbTAG6HALsK_40OowJuEHHdmfLgZEVsszv1FFAx7EMKUJnpJj_yUwOkgKSovq7Eka0wrKmm2b5XPdFJ8KM37I1JDEZ9_O1hR-Mxc; idsrv=CfDJ8EUkgX42ydVJuW85HhtFDP-xyCmKGHGZz2wrVPAbUhaUB_N7cWmnqeokmrQcxwp5_TpRwaj7rf_z9cNp-Fdw0-sGXrSdomhFdBLXAjhCGac4HcITm7wqNH4cL3rxZIZgnbdWVJ7wKpsotPVA0ON4a0alnQSdTsY3hLb7hVpfFnQsOkrMpLZb7V8NNjz--ogTfgQnPWNZ98qkc0B1KbqRZ8EFz2Ini2OwDuIy2kK9pGtyFpBBlVVb3MXJj_PSo1rKrlOfFL4lE0htOgDSQdRedy…0zTG5R0SeEFGK7l59bRRw-8N-dF79npXDeXjY6K7yRfI11qhA3U0B3Dy0Nv3QUJjdiHIbYftskfm8sn6upl6vO0HjVJ6QOmjZa7F90pPG-ceY70FORewVts3iUx5R_j0w5eAKC4dxUqRKZdMAIYYeTJdLMuYOoX5JG7Jje4ZpaHu1kZSCPVzfOV6gAFBgVHLyKiDlpe2Ygeob_UiyKVF8QLNFJ3MVdBpU_2cIhsRhHYpBfm9mgG_4IwTpsWR6erV-NjPRmBzmKiJyTkxQAjGjMmQT6hE96aARV58XE47p90bZ2c_AXm9C_y9hg4NF1dnmc7fn1VokP-Sy6slcPQn2WEw-PpWrTjQoWVo2MwmH4MwY6UqQV2b4EpK-7gH6xI2wxRE8pu0siG5og; QA.Sullissivik.Federation.Business.IsAuthenticated=false; Sullissivik.Federation.Business.IsAuthenticated=false
+Host
+	login.sullissivik.gl
+Referer
+	https://akap.sullissivik.gl/
+Upgrade-Insecure-Requests
+	1
+User-Agent
+	Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:81.0) Gecko/20100101 Firefox/81.0

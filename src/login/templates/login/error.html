@@ -1,0 +1,8 @@
+{% load i18n %}
+<ul>
+{% for key, error in errors.items %}
+    <li>{{key}}: {{error}}</li>
+{% endfor %}
+</ul>
+
+<a href="{% url 'login:login' %}"><button>{% trans 'Try again' %}</button></a>
