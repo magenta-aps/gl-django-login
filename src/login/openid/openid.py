@@ -1,3 +1,4 @@
+import logging
 from django.conf import settings
 from django.core.exceptions import SuspiciousOperation
 from django.http import HttpResponseRedirect, HttpResponse
@@ -141,7 +142,7 @@ class OpenId:
                 authn_method="private_key_jwt",
                 authn_endpoint='token'
             )
-    
+
             if isinstance(resp, ErrorResponse):
                 del request.session['oid_state']
                 logger.error('Error received from headnet: {}'.format(str(ErrorResponse)))

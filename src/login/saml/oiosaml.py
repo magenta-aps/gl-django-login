@@ -56,5 +56,3 @@ class OIOSaml(Saml2):
             'LevelOfAssurance': saml_claims.get('LevelOfAssurance'),
             'Privileges': cls.get_privileges(saml_claims),
         }
-
-

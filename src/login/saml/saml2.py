@@ -212,4 +212,3 @@ class Saml2():
         if cls.saml_settings['destination_port'] is not None:
             result['server_port'] = cls.saml_settings['destination_port']
         return result
-

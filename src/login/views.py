@@ -62,4 +62,3 @@ class LogoutCallback(TemplateView):
             return loginprovider().handle_logout_callback(request)
         except LoginException as e:
             return self.render_to_response({'errors': e.errordict})
-
