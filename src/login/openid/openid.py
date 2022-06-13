@@ -5,7 +5,6 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 from jwkest.jwk import rsa_load
 from login.exceptions import LoginException
-from login.openid.openid import OpenId
 from oic.oauth2 import ErrorResponse
 from oic.oic import Client
 from oic.oic import rndstr
