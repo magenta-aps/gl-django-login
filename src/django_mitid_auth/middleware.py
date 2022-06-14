@@ -3,7 +3,7 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.http import urlencode, urlquote
-from login import loginprovider
+from django_mitid_auth import loginprovider
 
 
 class LoginManager:
@@ -22,11 +22,12 @@ class LoginManager:
             # Urls that should not redirect an anonymous user to login page
             if hasattr(self.provider, 'whitelist'):
                 self.white_listed_urls += self.provider.whitelist
+            namespace = settings.LOGIN_NAMESPACE
             self.white_listed_urls += [
-                reverse('login:login'),
-                reverse('login:login-callback'),
-                reverse('login:logout'),
-                reverse('login:logout-callback'),
+                reverse(f"{namespace}:login"),
+                reverse(f"{namespace}:login-callback"),
+                reverse(f"{namespace}:logout"),
+                reverse(f"{namespace}:logout-callback"),
             ]
 
     def redirect_to_login(self, request):
@@ -57,5 +58,5 @@ class LoginManager:
 
     @staticmethod
     def get_backpage(request):
-        backpage = request.GET.get('back', request.session.get('backpage', reverse('aka:index')))
+        backpage = request.GET.get('back', request.session.get('backpage', settings.LOGIN_REDIRECT_URL))
         return backpage

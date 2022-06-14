@@ -26,7 +26,7 @@ class Saml2():
     onelogin_settings = OneLogin_Saml2_Settings(saml_settings, saml_settings['base_directory'])
 
     whitelist = [
-        reverse_lazy('login:saml:metadata')
+        reverse_lazy(settings.LOGIN_NAMESPACE + ':saml:metadata')
     ]
 
     session_keys = ('saml', 'user_info')
