@@ -4,9 +4,8 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import View, TemplateView
 
-from login import loginprovider
-
-from login.exceptions import LoginException
+from django_mitid_auth import loginprovider
+from django_mitid_auth.exceptions import LoginException
 
 
 class LoginView(View):
@@ -20,7 +19,7 @@ class LoginView(View):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class LoginCallbackView(TemplateView):
-    template_name = 'login/error.html'
+    template_name = 'django_mitid_auth/error.html'
 
     def get(self, request, *args, **kwargs):
         return self.handle(request)
@@ -48,7 +47,7 @@ class LogoutView(View):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class LogoutCallback(TemplateView):
-    template_name = 'login/error.html'
+    template_name = 'django_mitid_auth/error.html'
 
     @xframe_options_exempt
     def get(self, request, *args, **kwargs):

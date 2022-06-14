@@ -1,7 +1,7 @@
 import base64
 from xmltodict import parse as xml_to_dict
 
-from login.saml.saml2 import Saml2
+from django_mitid_auth.saml.saml2 import Saml2
 
 
 class OIOSaml(Saml2):

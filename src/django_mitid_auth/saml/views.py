@@ -1,7 +1,7 @@
 from django.http.response import Http404
 from django.views.generic.base import View
-from login import loginprovider
-from login.saml.saml2 import Saml2
+from django_mitid_auth import loginprovider
+from django_mitid_auth.saml.saml2 import Saml2
 
 
 class MetadataView(View):

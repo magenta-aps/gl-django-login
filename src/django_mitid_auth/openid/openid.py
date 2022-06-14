@@ -2,9 +2,8 @@ import logging
 from django.conf import settings
 from django.core.exceptions import SuspiciousOperation
 from django.http import HttpResponseRedirect, HttpResponse
-from django.urls import reverse
+from django_mitid_auth.exceptions import LoginException
 from jwkest.jwk import rsa_load
-from login.exceptions import LoginException
 from oic.oauth2 import ErrorResponse
 from oic.oic import Client
 from oic.oic import rndstr
@@ -87,11 +86,11 @@ class OpenId:
             if 'oid_state' in request.session:
                 del request.session['oid_state']  # if nonce was missing ensure oid_state is too
             logger.exception(SuspiciousOperation('Session `oid_nonce` does not exist!'))
-            return HttpResponseRedirect(reverse('openid:login'))
+            raise LoginException({'missing': 'oid_nonce'})
 
         if 'oid_state' not in request.session:
             logger.exception(SuspiciousOperation('Session `oid_state` does not exist!'))
-            return HttpResponseRedirect(reverse('openid:login'))
+            raise LoginException({'missing': 'oid_state'})
 
         client = Client(client_authn_method=CLIENT_AUTHN_METHOD, client_cert=OpenId.client_cert)
         client.keyjar[""] = OpenId.kc_rsa
@@ -124,7 +123,7 @@ class OpenId:
             if aresp['state'] != request.session['oid_state']:
                 del request.session['oid_state']
                 logger.exception(SuspiciousOperation('Session `oid_state` does not match the OID callback state'))
-                return HttpResponseRedirect(reverse('openid:login'))
+                raise LoginException({'mismatch': 'Session `oid_state` does not match the OID callback state'})
 
             provider_info = client.provider_config(cls.open_id_settings['issuer'])  # noqa
             logger.debug('provider info: {}'.format(client.config))
