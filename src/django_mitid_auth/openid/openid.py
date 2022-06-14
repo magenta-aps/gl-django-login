@@ -2,7 +2,6 @@ import logging
 from django.conf import settings
 from django.core.exceptions import SuspiciousOperation
 from django.http import HttpResponseRedirect, HttpResponse
-from django.urls import reverse
 from django_mitid_auth.exceptions import LoginException
 from jwkest.jwk import rsa_load
 from oic.oauth2 import ErrorResponse
