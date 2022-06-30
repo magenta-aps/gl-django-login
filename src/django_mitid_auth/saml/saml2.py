@@ -46,15 +46,20 @@ class Saml2():
                 del session[key]
 
     @classmethod
-    def login(cls, request):
+    def login(cls, request, auth_params=None, login_params=None):
         """Kick off a SAML login request."""
+        if auth_params is None:
+            auth_params = {}
+        if login_params is None:
+            login_params = {}
         req = Saml2._prepare_django_request(request)
-        saml_auth = OneLogin_Saml2_Auth(req, old_settings=cls.onelogin_settings)
+        saml_auth = OneLogin_Saml2_Auth(req, old_settings=cls.onelogin_settings, **auth_params)
         if 'back' in request.GET:
             redirect_to = OneLogin_Saml2_Utils.get_self_url(req) + request.GET['back']
         else:
             redirect_to = OneLogin_Saml2_Utils.get_self_url(req) + cls.saml_settings['login_redirect']
-        url = saml_auth.login(redirect_to)
+        url = saml_auth.login(redirect_to, **login_params)
+        logger.info(saml_auth.get_last_request_xml())
         request.session['AuthNRequestID'] = saml_auth.get_last_request_id()
         return HttpResponseRedirect(url)
 

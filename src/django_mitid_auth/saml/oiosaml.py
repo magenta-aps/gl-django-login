@@ -56,3 +56,8 @@ class OIOSaml(Saml2):
             'LevelOfAssurance': saml_claims.get('LevelOfAssurance'),
             'Privileges': cls.get_privileges(saml_claims),
         }
+
+    @classmethod
+    def login(cls, request, login_params=None):
+        login_params['set_nameid_policy'] = False
+        return super().login(request, login_params=login_params)
