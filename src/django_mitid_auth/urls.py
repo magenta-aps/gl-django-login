@@ -6,9 +6,9 @@ from django_mitid_auth.views import LoginView, LoginCallbackView, LogoutView, Lo
 app_name = LoginConfig.name
 
 urlpatterns = [
-    path('login/', LoginView.as_view(), name='login'),
-    path('login/callback/', LoginCallbackView.as_view(), name='login-callback'),
-    path('logout/', LogoutView.as_view(), name='logout'),
-    path('logout/callback/', LogoutCallback.as_view(), name='logout-callback'),
-    path('saml/', include('django_mitid_auth.saml.urls', namespace='saml')),
+    path('login/?', LoginView.as_view(), name='login'),
+    path('login/callback/?', LoginCallbackView.as_view(), name='login-callback'),
+    path('logout/?', LogoutView.as_view(), name='logout'),
+    path('logout/callback/?', LogoutCallback.as_view(), name='logout-callback'),
+    path('saml/?', include('django_mitid_auth.saml.urls', namespace='saml')),
 ]
