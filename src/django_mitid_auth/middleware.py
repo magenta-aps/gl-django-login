@@ -16,9 +16,9 @@ class LoginManager:
 
     def __init__(self, get_response):
         self.white_listed_urls = list(settings.LOGIN_WHITELISTED_URLS)
+        self.get_response = get_response
         if self.enabled:
             self.provider = loginprovider()
-            self.get_response = get_response
             # Urls that should not redirect an anonymous user to login page
             if hasattr(self.provider, 'whitelist'):
                 self.white_listed_urls += self.provider.whitelist
@@ -50,6 +50,7 @@ class LoginManager:
                     'CVR': settings.DEFAULT_CVR,
                     'CPR': settings.DEFAULT_CPR,
                 }
+        return self.get_response(request)
         # try:
         #     response = self.get_response(request)
         #     if response.status_code == 403:
