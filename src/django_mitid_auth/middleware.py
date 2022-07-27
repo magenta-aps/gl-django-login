@@ -50,6 +50,7 @@ class LoginManager:
                     'CVR': settings.DEFAULT_CVR,
                     'CPR': settings.DEFAULT_CPR,
                 }
+        print("returning response")
         return self.get_response(request)
         # try:
         #     response = self.get_response(request)
