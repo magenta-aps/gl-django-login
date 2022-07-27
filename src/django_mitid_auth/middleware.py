@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.http import urlencode, urlquote
@@ -38,28 +37,17 @@ class LoginManager:
 
     def __call__(self, request):
         if self.enabled:
-            print("enabled")
             # When any non-whitelisted page is loaded, check if we are authenticated
             if request.path not in self.white_listed_urls and request.path.rstrip('/') not in self.white_listed_urls and not request.path.startswith(settings.STATIC_URL):
                 if not self.provider.is_logged_in(request):
                     return self.redirect_to_login(request)
         else:
-            print("not enabled")
             if 'user_info' not in request.session or not request.session['user_info']:
                 request.session['user_info'] = {
                     'CVR': settings.DEFAULT_CVR,
                     'CPR': settings.DEFAULT_CPR,
                 }
-        response = self.get_response(request)
-        print(f"returning response {response.status_code}")
-        return response
-        # try:
-        #     response = self.get_response(request)
-        #     if response.status_code == 403:
-        #         return self.redirect_to_login(request)
-        #     return response
-        # except PermissionDenied:
-        #     return self.redirect_to_login(request)
+        return self.get_response(request)
 
     @staticmethod
     def get_backpage(request):
