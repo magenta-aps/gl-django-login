@@ -50,8 +50,9 @@ class LoginManager:
                     'CVR': settings.DEFAULT_CVR,
                     'CPR': settings.DEFAULT_CPR,
                 }
-        print("returning response")
-        return self.get_response(request)
+        response = self.get_response(request)
+        print(f"returning response {response.status_code}")
+        return response
         # try:
         #     response = self.get_response(request)
         #     if response.status_code == 403:
