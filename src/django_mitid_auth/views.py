@@ -33,9 +33,10 @@ class LoginCallbackView(TemplateView):
                 request=request,
                 success_url=request.session.get('backpage', settings.LOGIN_REDIRECT_URL)
             )
-        #except LoginException as e:
-        #    return self.render_to_response({'errors': e.errordict})
-        except:
+        # except LoginException as e:
+        #     return self.render_to_response({'errors': e.errordict})
+        except Exception:
+            # Temporarily reraise errors, so we can see their details
             raise
 
 

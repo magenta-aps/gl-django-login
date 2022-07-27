@@ -54,6 +54,7 @@ class Saml2():
             login_params = {}
         req = Saml2._prepare_django_request(request)
         saml_auth = OneLogin_Saml2_Auth(req, old_settings=cls.onelogin_settings, **auth_params)
+
         if 'back' in request.GET:
             redirect_to = OneLogin_Saml2_Utils.get_self_url(req) + request.GET['back']
         else:
