@@ -44,7 +44,8 @@ class LoginManager:
 
     def __call__(self, request):
         if self.can_bypass:
-            if request.GET.get('login_bypass'):
+            print(request.path)
+            if request.path == reverse(f"{settings.LOGIN_NAMESPACE}:bypass") and request.GET.get('login_bypass'):
                 # set up dummy session
                 self.set_dummy_session(request)
             else:
