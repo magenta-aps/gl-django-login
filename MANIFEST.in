@@ -1,3 +1,4 @@
 include django_mitid_auth/
 include django_mitid_auth/templates/
 include django_mitid_auth/templates/django_mitid_auth/*.html
+recursive-include django_mitid_auth/templates/ *
