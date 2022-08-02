@@ -40,5 +40,3 @@ class DummyProvider:
     @classmethod
     def handle_logout_callback(cls, request):
         return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
-
-
