@@ -4,7 +4,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import View, TemplateView
 
-from django_mitid_auth import loginprovider
+from django_mitid_auth import login_provider_class
 from django_mitid_auth.exceptions import LoginException
 
 
@@ -12,7 +12,7 @@ class LoginView(View):
     def get(self, request):
         request.session['backpage'] = request.GET.get('back')
         # Setup the oauth login url and redirect the browser to it.
-        provider = loginprovider()
+        provider = login_provider_class()
         request.session['login_method'] = provider.__class__.__name__
         return provider.login(request)
 
@@ -29,7 +29,7 @@ class LoginCallbackView(TemplateView):
 
     def handle(self, request):
         try:
-            return loginprovider().handle_login_callback(
+            return login_provider_class().handle_login_callback(
                 request=request,
                 success_url=request.session.get('backpage', settings.LOGIN_REDIRECT_URL)
             )
@@ -40,7 +40,7 @@ class LoginCallbackView(TemplateView):
 class LogoutView(View):
     def get(self, request):
         try:
-            return loginprovider().logout(request)
+            return login_provider_class().logout(request)
         except LoginException as e:
             return self.render_to_response({'errors': e.errordict})
 
@@ -58,6 +58,6 @@ class LogoutCallback(TemplateView):
 
     def handle(self, request):
         try:
-            return loginprovider().handle_logout_callback(request)
+            return login_provider_class().handle_logout_callback(request)
         except LoginException as e:
             return self.render_to_response({'errors': e.errordict})
