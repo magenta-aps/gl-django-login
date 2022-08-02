@@ -33,6 +33,7 @@ class LoginManager:
                 reverse(f"{namespace}:login-callback"),
                 reverse(f"{namespace}:logout"),
                 reverse(f"{namespace}:logout-callback"),
+                reverse(f"{namespace}:bypass"),
             ]
 
     def get_login_redirection_url(self, request):
@@ -47,16 +48,12 @@ class LoginManager:
     def __call__(self, request):
         if self.can_bypass:
             print(request.path)
-            if request.path == reverse(f"{settings.LOGIN_NAMESPACE}:bypass"):
-                if request.GET.get('login_bypass'):
-                    print("set up dummy session")
-                    # set up dummy session
-                    self.set_dummy_session(request)
-                else:
-                    print("show bypass page")
-                pass
+            if request.GET.get('login_bypass'):
+                print("set up dummy session")
+                # set up dummy session
+                self.set_dummy_session(request)
             else:
-                print("redirect to bypass page")
+                print("show bypass page")
                 # offer bypass page
 
                 return HttpResponse(
