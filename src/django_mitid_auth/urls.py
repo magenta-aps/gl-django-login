@@ -1,7 +1,7 @@
 from django.urls import path, include
 
 from django_mitid_auth.apps import LoginConfig
-from django_mitid_auth.views import LoginView, LoginCallbackView, LogoutView, LogoutCallback
+from django_mitid_auth.views import LoginView, LoginCallbackView, LogoutView, LogoutCallback, BypassView
 
 app_name = LoginConfig.name
 
@@ -11,4 +11,5 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('logout/callback/', LogoutCallback.as_view(), name='logout-callback'),
     path('saml/', include('django_mitid_auth.saml.urls', namespace='saml')),
+    path('bypass/', BypassView.as_view(), name='bypass'),
 ]

@@ -61,3 +61,7 @@ class LogoutCallback(TemplateView):
             return loginprovider().handle_logout_callback(request)
         except LoginException as e:
             return self.render_to_response({'errors': e.errordict})
+
+
+class BypassView(TemplateView):
+    template_name = 'django_mitid_auth/bypass.html'
