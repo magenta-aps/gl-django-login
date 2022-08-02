@@ -3,6 +3,7 @@ from django.conf import settings
 from django.core.exceptions import SuspiciousOperation
 from django.http import HttpResponseRedirect, HttpResponse
 from django_mitid_auth.exceptions import LoginException
+from django_mitid_auth.loginprovider import LoginProvider
 from jwkest.jwk import rsa_load
 from oic.oauth2 import ErrorResponse
 from oic.oic import Client
@@ -15,7 +16,7 @@ from oic.utils.keyio import KeyBundle
 logger = logging.getLogger(__name__)
 
 
-class OpenId:
+class OpenId(LoginProvider):
 
     open_id_settings = {}
     kc_rsa = None
@@ -32,10 +33,6 @@ class OpenId:
     @classmethod
     def enabled(cls):
         return cls.open_id_settings.get('enabled', False)
-
-    @classmethod
-    def is_logged_in(cls, request):
-        return True if request.session.get('user_info') else False
 
     @classmethod
     def authenticate(cls, request):

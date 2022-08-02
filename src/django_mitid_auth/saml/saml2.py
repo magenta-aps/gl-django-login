@@ -1,10 +1,10 @@
 import logging
-
 from django.conf import settings
 from django.contrib import auth
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseServerError
 from django.urls import reverse_lazy
+from django_mitid_auth.loginprovider import LoginProvider
 from onelogin.saml2.auth import OneLogin_Saml2_Auth
 from onelogin.saml2.settings import OneLogin_Saml2_Settings
 from onelogin.saml2.utils import OneLogin_Saml2_Utils
@@ -12,7 +12,7 @@ from onelogin.saml2.utils import OneLogin_Saml2_Utils
 logger = logging.getLogger(__name__)
 
 
-class Saml2():
+class Saml2(LoginProvider):
     """
     Borrows heavily from python3-saml-django
     https://pypi.org/project/python3-saml-django/
@@ -34,16 +34,6 @@ class Saml2():
     claims_map = {
         'PersonName': 'http://schemas.microsoft.com/identity/claims/displayname',
     }
-
-    @classmethod
-    def is_logged_in(cls, request):
-        return True if request.session.get('user_info') else False
-
-    @classmethod
-    def _clear_secrets(cls, session):
-        for key in Saml2.session_keys:
-            if key in session:
-                del session[key]
 
     @classmethod
     def login(cls, request, auth_params=None, login_params=None):
@@ -70,6 +60,13 @@ class Saml2():
             for key, claimKey in cls.claims_map.items()
             if claimKey in saml_claims
         }
+
+    @classmethod
+    def clear_session(cls, session):
+        for key in ['user_info', 'cvr', 'cpr', 'saml']:
+            if key in session:
+                del session[key]
+        session.save()
 
     @classmethod
     def log_login(cls, request, saml_auth, saml_claims):
@@ -172,9 +169,7 @@ class Saml2():
             cls.log_logout(request, saml_auth, saml_claims)
             if not errors:
                 auth.logout(request)
-                for key in ('user_info', 'cvr', 'cpr', 'saml'):
-                    if key in request.session:
-                        del request.session[key]
+                cls.clear_session(request.session)
                 redirect_to = url or cls.saml_settings['logout_redirect']
                 return HttpResponseRedirect(redirect_to)
             else:
