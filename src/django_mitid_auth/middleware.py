@@ -3,6 +3,7 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.http import urlencode, urlquote
 from django_mitid_auth import loginprovider
+from django.template.response import TemplateResponse
 
 
 class LoginManager:
@@ -56,11 +57,20 @@ class LoginManager:
             else:
                 print("redirect to bypass page")
                 # offer bypass page
-                return redirect(''.join([
-                    reverse(f"{settings.LOGIN_NAMESPACE}:bypass"),
-                    "?login="+urlquote(self.get_login_redirection_url(request)),
-                    "&bypass="+urlquote(request.path+"?login_bypass=1")
-                ]))
+                return TemplateResponse(
+                    request=request,
+                    template='django_mitid_auth/bypass.html',
+                    context={
+                        'login_url': self.get_login_redirection_url(request),
+                        'bypass_url': request.path+"?login_bypass=1"
+                    }
+                )
+
+                # return redirect(''.join([
+                #     reverse(f"{settings.LOGIN_NAMESPACE}:bypass"),
+                #     "?login="+urlquote(self.get_login_redirection_url(request)),
+                #     "&bypass="+urlquote(request.path+"?login_bypass=1")
+                # ]))
 
         elif self.enabled:
             # When any non-whitelisted page is loaded, check if we are authenticated
