@@ -1,0 +1,1 @@
+include django_mitid_auth/templates/django_mitid_auth/*.html
