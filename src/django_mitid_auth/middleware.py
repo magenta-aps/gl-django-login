@@ -46,46 +46,31 @@ class LoginManager:
         return redirect(self.get_login_redirection_url(request))
 
     def __call__(self, request):
-        if self.can_bypass:
-            print(request.path)
-            if request.GET.get('login_bypass'):
-                print("set up dummy session")
-                # set up dummy session
-                self.set_dummy_session(request)
-            else:
-                print("show bypass page")
-                # offer bypass page
-
-                return HttpResponse(
-                    get_template('django_mitid_auth/bypass.html').render({
-                        'login_url': self.get_login_redirection_url(request),
-                        'bypass_url': request.path+"?login_bypass=1"
-                    })
-                )
-                # return TemplateResponse(
-                #     request=request,
-                #     template='django_mitid_auth/bypass.html',
-                #     using=self.template_engine,
-                #     context={
-                #         'login_url': self.get_login_redirection_url(request),
-                #         'bypass_url': request.path+"?login_bypass=1"
-                #     }
-                # )
-
-                # return redirect(''.join([
-                #     reverse(f"{settings.LOGIN_NAMESPACE}:bypass"),
-                #     "?login="+urlquote(self.get_login_redirection_url(request)),
-                #     "&bypass="+urlquote(request.path+"?login_bypass=1")
-                # ]))
-
-        elif self.enabled:
+        if request.path not in self.white_listed_urls and request.path.rstrip('/') not in self.white_listed_urls and not request.path.startswith(settings.STATIC_URL):
             # When any non-whitelisted page is loaded, check if we are authenticated
-            if request.path not in self.white_listed_urls and request.path.rstrip('/') not in self.white_listed_urls and not request.path.startswith(settings.STATIC_URL):
+
+            if self.can_bypass:
+                if request.GET.get('login_bypass'):
+                    print("set up dummy session")
+                    # set up dummy session
+                    self.set_dummy_session(request)
+                else:
+                    print("show bypass page")
+                    # offer bypass page
+
+                    return HttpResponse(
+                        get_template('django_mitid_auth/bypass.html').render({
+                            'login_url': self.get_login_redirection_url(request),
+                            'bypass_url': request.path+"?login_bypass=1"
+                        })
+                    )
+
+            elif self.enabled:
                 if not self.provider.is_logged_in(request):
                     return self.redirect_to_login(request)
-        else:
-            # Not enabled; fall back to dummy user if available
-            self.set_dummy_session(request)
+            else:
+                # Not enabled; fall back to dummy user if available
+                self.set_dummy_session(request)
 
         return self.get_response(request)
 
