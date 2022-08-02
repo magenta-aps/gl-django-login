@@ -1,1 +1,1 @@
-recursive-include django_mitid_auth/templates/ *
+recursive-include src/django_mitid_auth/templates/ *
