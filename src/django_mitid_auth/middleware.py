@@ -33,11 +33,7 @@ class LoginManager:
                 reverse(f"{namespace}:login-callback"),
                 reverse(f"{namespace}:logout"),
                 reverse(f"{namespace}:logout-callback"),
-                reverse(f"{namespace}:bypass"),
             ]
-        self.white_listed_urls += [
-            reverse(f"{namespace}:bypass"),
-        ]
 
     def get_login_redirection_url(self, request):
         backpage = urlquote(request.path)
