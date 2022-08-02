@@ -3,7 +3,8 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.http import urlencode, urlquote
 from django_mitid_auth import loginprovider
-from django.template.response import TemplateResponse
+from django.template.loader import get_template
+from django.http import HttpResponse
 
 
 class LoginManager:
@@ -57,14 +58,22 @@ class LoginManager:
             else:
                 print("redirect to bypass page")
                 # offer bypass page
-                return TemplateResponse(
-                    request=request,
-                    template='django_mitid_auth/bypass.html',
-                    context={
+
+                return HttpResponse(
+                    get_template('django_mitid_auth/bypass.html').render({
                         'login_url': self.get_login_redirection_url(request),
                         'bypass_url': request.path+"?login_bypass=1"
-                    }
+                    })
                 )
+                # return TemplateResponse(
+                #     request=request,
+                #     template='django_mitid_auth/bypass.html',
+                #     using=self.template_engine,
+                #     context={
+                #         'login_url': self.get_login_redirection_url(request),
+                #         'bypass_url': request.path+"?login_bypass=1"
+                #     }
+                # )
 
                 # return redirect(''.join([
                 #     reverse(f"{settings.LOGIN_NAMESPACE}:bypass"),
