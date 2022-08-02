@@ -2,7 +2,7 @@ from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.http import urlencode, urlquote
-from django_mitid_auth import loginprovider
+from django_mitid_auth import login_provider_class
 from django.template.loader import get_template
 from django.http import HttpResponse
 
@@ -24,7 +24,7 @@ class LoginManager:
         self.get_response = get_response
         namespace = settings.LOGIN_NAMESPACE
         if self.enabled:
-            self.provider = loginprovider()
+            self.provider = login_provider_class()
             # Urls that should not redirect an anonymous user to login page
             if hasattr(self.provider, 'whitelist'):
                 self.white_listed_urls += self.provider.whitelist
