@@ -49,13 +49,14 @@ class LoginManager:
             # When any non-whitelisted page is loaded, check if we are authenticated
 
             if self.enabled:
-                if self.provider.is_logged_in(request):
+                if self.provider.is_logged_in(request) or request.session['bypassed']:
                     return self.get_response(request)
                 else:
                     if self.can_bypass:
                         if request.GET.get('login_bypass'):
                             # set up dummy session
                             self.set_dummy_session(request)
+                            request.session['bypassed'] = True
                         else:
                             # offer bypass page
                             return HttpResponse(

@@ -39,6 +39,8 @@ class LoginCallbackView(TemplateView):
 
 class LogoutView(View):
     def get(self, request):
+        if 'bypassed' in request.session:
+            del request.session['bypassed']
         try:
             return login_provider_class().logout(request)
         except LoginException as e:
