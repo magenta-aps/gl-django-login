@@ -9,7 +9,7 @@ class LoginProvider:
 
     @classmethod
     def enabled(cls):
-        raise NotImplementedError
+        return settings.LOGIN_PROVIDER_CLASS == cls.__module__ + '.' + cls.__qualname__
 
     @classmethod
     def is_logged_in(cls, request):

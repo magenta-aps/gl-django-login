@@ -11,7 +11,6 @@ from django_mitid_auth.exceptions import LoginException
 class LoginView(View):
     def get(self, request):
         request.session['backpage'] = request.GET.get('back')
-        # Setup the oauth login url and redirect the browser to it.
         provider = login_provider_class()
         request.session['login_method'] = provider.__class__.__name__
         return provider.login(request)
