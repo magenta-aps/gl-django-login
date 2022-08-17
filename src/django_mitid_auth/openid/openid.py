@@ -2,6 +2,7 @@ import logging
 from django.conf import settings
 from django.core.exceptions import SuspiciousOperation
 from django.http import HttpResponseRedirect, HttpResponse
+from django.urls import reverse_lazy
 from django_mitid_auth.exceptions import LoginException
 from django_mitid_auth.loginprovider import LoginProvider
 from jwkest.jwk import rsa_load
@@ -29,6 +30,11 @@ class OpenId(LoginProvider):
                             {'key': key, 'kty': 'RSA', 'use': 'sig'}])
 
         client_cert = (open_id_settings['client_certificate'], open_id_settings['private_key'])
+
+    whitelist = [
+        reverse_lazy(settings.LOGIN_NAMESPACE + ':oid:login-callback'),
+        reverse_lazy(settings.LOGIN_NAMESPACE + ':oid:logout')
+    ]
 
     @classmethod
     def enabled(cls):

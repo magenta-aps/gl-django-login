@@ -10,5 +10,6 @@ urlpatterns = [
     path('login/callback/', LoginCallbackView.as_view(), name='login-callback'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('logout/callback/', LogoutCallback.as_view(), name='logout-callback'),
+    path('oid/', include('django_mitid_auth.openid.urls', namespace='oid')),
     path('saml/', include('django_mitid_auth.saml.urls', namespace='saml')),
 ]
