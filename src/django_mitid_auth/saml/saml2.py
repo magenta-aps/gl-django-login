@@ -118,6 +118,7 @@ class Saml2(LoginProvider):
                 }
                 request.session['user_info'] = saml_claims
                 request.session['cvr'] = request.session['user_info'].get('CVR')
+                cls.populate_session(request.session, saml_claims)
 
                 # This data is used during Single Log Out
                 if 'RelayState' in req['post_data'] \
@@ -133,6 +134,11 @@ class Saml2(LoginProvider):
         except Exception as e:
             logger.exception(e)
             return HttpResponse(content="Invalid Response", status=400)
+
+    @classmethod
+    def populate_session(cls, session, saml_claims):
+        session['user_info'] = saml_claims
+        session['cvr'] = session['user_info'].get('CVR')
 
     @classmethod
     def logout(cls, request):
