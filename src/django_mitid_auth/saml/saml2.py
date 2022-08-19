@@ -8,6 +8,8 @@ from django_mitid_auth.loginprovider import LoginProvider
 from saml2.config import Config
 from saml2.metadata import entity_descriptor, metadata_tostring_fix
 from saml2.client import Saml2Client
+from saml2 import BINDING_HTTP_REDIRECT
+from saml2 import BINDING_HTTP_POST
 
 from saml2.validate import valid_instance
 logger = logging.getLogger(__name__)
