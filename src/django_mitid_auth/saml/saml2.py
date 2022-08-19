@@ -48,7 +48,7 @@ class Saml2(LoginProvider):
 
         for binding in [BINDING_HTTP_REDIRECT, BINDING_HTTP_POST]:
             try:
-                print(client._sso_location('http://localhost:8888/simplesaml/saml2/idp/metadata.php', binding))
+                print(client._sso_location('http://test-idp:8080/simplesaml/saml2/idp/metadata.php', binding))
             except Exception as e:
                 print(e)
 
