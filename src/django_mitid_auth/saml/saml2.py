@@ -129,7 +129,7 @@ class Saml2(LoginProvider):
         """
         return cls.list_to_local(acs, statement.attribute, allow_unknown_attributes)
 
-
+    @classmethod
     def list_to_local(cls, acs, attrlist, allow_unknown_attributes=False):
         """ Replaces the attribute names in a attribute value assertion with the
         equivalent name from a local name format.
