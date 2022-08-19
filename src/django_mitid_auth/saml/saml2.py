@@ -108,106 +108,6 @@ class Saml2(LoginProvider):
         }
 
     @classmethod
-    def read_attribute_statement(cls, response, attr_statem):
-        logger.debug("Attribute Statement: %s", attr_statem)
-        # for aconv in self.attribute_converters:
-        #    logger.debug("Converts name format: %s", aconv.name_format)
-
-        response.decrypt_attributes(attr_statem)
-        return cls.to_local(response.attribute_converters, attr_statem,
-                        response.allow_unknown_attributes)
-
-    @classmethod
-    def to_local(cls, acs, statement, allow_unknown_attributes=False):
-        """ Replaces the attribute names in a attribute value assertion with the
-        equivalent name from a local name format.
-
-        :param acs: List of Attribute Converters
-        :param statement: The Attribute Statement
-        :param allow_unknown_attributes: If unknown attributes are allowed
-        :return: A key,values dictionary
-        """
-        return cls.list_to_local(acs, statement.attribute, allow_unknown_attributes)
-
-    @classmethod
-    def list_to_local(cls, acs, attrlist, allow_unknown_attributes=False):
-        """ Replaces the attribute names in a attribute value assertion with the
-        equivalent name from a local name format.
-
-        :param acs: List of Attribute Converters
-        :param attrlist: List of Attributes
-        :param allow_unknown_attributes: If unknown attributes are allowed
-        :return: A key,values dictionary
-        """
-        if not acs:
-            acs = [AttributeConverter()]
-            acsd = {"": acs}
-        else:
-            acsd = dict([(a.name_format, a) for a in acs])
-
-        for name_format, a in acsd.items():
-            print(f"{name_format} - {a._to}")
-        ava = {}
-        for attr in attrlist:
-            try:
-                _func = acsd[attr.name_format].ava_from
-            except KeyError:
-                if (
-                        attr.name_format == NAME_FORMAT_UNSPECIFIED
-                        or allow_unknown_attributes
-                ):
-                    _func = acs[0].lcd_ava_from
-                else:
-                    print("Unsupported attribute name format: %s", attr.name_format)
-                    continue
-
-            try:
-                key, val = _func(attr)
-            except KeyError:
-                if allow_unknown_attributes:
-                    key, val = acs[0].lcd_ava_from(attr)
-                else:
-                    print("Unknown attribute name: %s", attr)
-                    continue
-            except AttributeError:
-                continue
-
-            try:
-                ava[key].extend(val)
-            except KeyError:
-                ava[key] = val
-
-        return ava
-
-
-
-    @classmethod
-    def get_identity(cls, response):
-        ava = {}
-        for _assertion in response.assertions:
-            if _assertion.advice:
-                print("advice")
-                if _assertion.advice.assertion:
-                    for tmp_assertion in _assertion.advice.assertion:
-                        if tmp_assertion.attribute_statement:
-                            n_attr_statements = len(tmp_assertion.attribute_statement)
-                            if n_attr_statements != 1:
-                                msg = "Invalid number of AuthnStatement found in Response: {n}".format(n=n_attr_statements)
-                                raise Exception(msg)
-                            ava.update(cls.read_attribute_statement(response, tmp_assertion.attribute_statement[0]))
-            if _assertion.attribute_statement:
-                print(_assertion.attribute_statement)
-                print(f"Assertion contains {len(response.assertion.attribute_statement)} attribute statement(s)")
-                for _attr_statem in _assertion.attribute_statement:
-                    print("Attribute Statement: %s" % (_attr_statem,))
-                    f = cls.read_attribute_statement(response, _attr_statem)
-                    print(f)
-                    ava.update(f)
-            if not ava:
-                print("Assertion contains no attribute statements")
-        return ava
-
-    @classmethod
     def handle_login_callback(cls, request, success_url):
         """Handle an AuthenticationResponse from the IdP."""
         config = Config().load(settings.SAML)
@@ -218,16 +118,16 @@ class Saml2(LoginProvider):
             request.POST['SAMLResponse'],
             'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
         )
-        print(type(authn_response))
-        print(f"get_identity: {cls.get_identity(authn_response)}")
-        print(authn_response.attribute_converters)
-        for assertion in authn_response.assertions:
-            for attribute_statement in assertion.attribute_statement:
-                for attribute in attribute_statement.attribute:
-                    print(type(attribute))
-                    print(dir(attribute))
-                    print(attribute.name)
-                    print(attribute.text)
+        print(f"get_identity: {authn_response.get_identity()}")
+
+        request.session['user_info'] = {
+            key: values[0]
+            if type(values) == list and len(values) == 1
+            else values
+            for key, values in authn_response.get_identity().items()
+        }
+        print(request.session['user_info'])
+
         return HttpResponseRedirect(success_url)
         """
         if request.method != 'POST':
