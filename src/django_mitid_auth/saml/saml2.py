@@ -120,6 +120,10 @@ class Saml2(LoginProvider):
         for assertion in authn_response.assertions:
             print(type(assertion))
             print(dir(assertion))
+            print(assertion.subject)
+            print(assertion.text)
+            print(assertion.to_string())
+        return HttpResponseRedirect(success_url)
         """
         if request.method != 'POST':
             return HttpResponse('Method not allowed.', status=405)
