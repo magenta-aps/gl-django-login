@@ -46,8 +46,10 @@ class Saml2(LoginProvider):
         print(type(client.metadata))
         print(dir(client.metadata))
 
-        r = client.prepare_for_authenticate(entityid=settings.SAML['idp_entity_id'])
-        print(r)
+        saml_session_id, authrequest_data = client.prepare_for_authenticate(entityid=settings.SAML['idp_entity_id'])
+        print(authrequest_data)
+        request.session['AuthNRequestID'] = saml_session_id
+        return HttpResponse(status=authrequest_data['headers'], headers=authrequest_data['headers'])
         """
         if auth_params is None:
             auth_params = {}
