@@ -1,2 +1,2 @@
 django
-python3-saml
+pysaml2
