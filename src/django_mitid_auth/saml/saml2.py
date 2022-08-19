@@ -113,6 +113,8 @@ class Saml2(LoginProvider):
 
         xmlstr_b64 = request.POST['SAMLResponse']
         xmlstr = b64decode(xmlstr_b64).decode()
+        print(type(xmlstr))
+        print(len(xmlstr))
         binding = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
         print(xmlstr)
         parsed = client.parse_authn_request_response(
