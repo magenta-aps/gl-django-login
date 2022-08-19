@@ -118,11 +118,14 @@ class Saml2(LoginProvider):
         )
         print(type(authn_response))
         print(f"get_identity: {authn_response.get_identity()}")
+        print(authn_response.attribute_converters)
         for assertion in authn_response.assertions:
             for attribute_statement in assertion.attribute_statement:
                 for attribute in attribute_statement.attribute:
                     print(type(attribute))
                     print(dir(attribute))
+                    print(attribute.name)
+                    print(attribute.text)
         return HttpResponseRedirect(success_url)
         """
         if request.method != 'POST':
