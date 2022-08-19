@@ -5,7 +5,10 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseServerError
 from django.urls import reverse_lazy
 from django_mitid_auth.loginprovider import LoginProvider
+from saml2.config import Config
+from saml2.metadata import entity_descriptor, metadata_tostring_fix
 
+from saml2.validate import valid_instance
 logger = logging.getLogger(__name__)
 
 
@@ -191,6 +194,16 @@ class Saml2(LoginProvider):
     @classmethod
     def metadata(cls, request):
         """Render the metadata of this service."""
+
+        cnf = Config().load(settings.SAML)
+        eid = entity_descriptor(cnf)
+
+        valid_instance(eid)
+        xmldoc = None
+        nspair = {"xs": "http://www.w3.org/2001/XMLSchema"}
+        xmldoc = metadata_tostring_fix(eid, nspair, xmldoc)
+        print(xmldoc.decode("utf-8"))
+        return HttpResponse(content=xmldoc.decode("utf-8"), content_type='text/xml')
         """
         metadata_dict = cls.onelogin_settings.get_sp_metadata()
         errors = cls.onelogin_settings.validate_metadata(metadata_dict)
