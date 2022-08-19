@@ -111,14 +111,15 @@ class Saml2(LoginProvider):
         config = Config().load(settings.SAML)
         client = Saml2Client(config=config)
 
-        xmlstr_b64 = request.POST['SAMLResponse']
-        xmlstr = xmlstr_b64  # b64decode(xmlstr_b64).decode()
-        binding = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
-        parsed = client.parse_authn_request_response(
-                xmlstr, binding
+        # authn_response is of type saml2.response.AuthnResponse
+        authn_response = client.parse_authn_request_response(
+            request.POST['SAMLResponse'],
+            'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
         )
-        print("============================")
-        print(f"parsed: {parsed}")
+        print(type(authn_response))
+        for assertion in authn_response.assertions:
+            print(type(assertion))
+            print(dir(assertion))
         """
         if request.method != 'POST':
             return HttpResponse('Method not allowed.', status=405)
