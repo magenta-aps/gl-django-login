@@ -117,6 +117,7 @@ class Saml2(LoginProvider):
         parsed = client.parse_authn_request_response(
                 xmlstr, binding
         )
+        print("============================")
         print(f"parsed: {parsed}")
         """
         if request.method != 'POST':
