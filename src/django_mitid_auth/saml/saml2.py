@@ -5,9 +5,6 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseServerError
 from django.urls import reverse_lazy
 from django_mitid_auth.loginprovider import LoginProvider
-from onelogin.saml2.auth import OneLogin_Saml2_Auth
-from onelogin.saml2.settings import OneLogin_Saml2_Settings
-from onelogin.saml2.utils import OneLogin_Saml2_Utils
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +20,7 @@ class Saml2(LoginProvider):
     """
 
     saml_settings = settings.SAML
-    onelogin_settings = OneLogin_Saml2_Settings(saml_settings, saml_settings['base_directory'])
+    # onelogin_settings = OneLogin_Saml2_Settings(saml_settings, saml_settings['base_directory'])
 
     whitelist = [
         reverse_lazy(settings.LOGIN_NAMESPACE + ':saml:metadata')
@@ -98,6 +95,7 @@ class Saml2(LoginProvider):
     @classmethod
     def handle_login_callback(cls, request, success_url):
         """Handle an AuthenticationResponse from the IdP."""
+        """
         if request.method != 'POST':
             return HttpResponse('Method not allowed.', status=405)
         try:
@@ -136,10 +134,12 @@ class Saml2(LoginProvider):
         except Exception as e:
             logger.exception(e)
             return HttpResponse(content="Invalid Response", status=400)
+        """
 
     @classmethod
     def logout(cls, request):
         """Kick off a SAML logout request."""
+        """
         req = cls._prepare_django_request(request)
         saml_auth = OneLogin_Saml2_Auth(req, old_settings=cls.onelogin_settings)
         (name_id, session_index, name_id_format, name_id_nq, name_id_spnq) = (None, None, None, None, None)
@@ -156,10 +156,12 @@ class Saml2(LoginProvider):
         )
         request.session['LogoutRequestID'] = saml_auth.get_last_request_id()
         return HttpResponseRedirect(url)
+        """
 
     @classmethod
     def handle_logout_callback(cls, request):
         """Handle a LogoutResponse from the IdP."""
+        """
         if request.method != 'GET':
             return HttpResponse('Method not allowed.', status=405)
         req = cls._prepare_django_request(request)
@@ -184,10 +186,12 @@ class Saml2(LoginProvider):
         except Exception as e:
             logger.exception(e)
             return HttpResponse("Invalid request", status=400)
+        """
 
     @classmethod
     def metadata(cls, request):
         """Render the metadata of this service."""
+        """
         metadata_dict = cls.onelogin_settings.get_sp_metadata()
         errors = cls.onelogin_settings.validate_metadata(metadata_dict)
         if len(errors) == 0:
@@ -195,10 +199,13 @@ class Saml2(LoginProvider):
         else:
             resp = HttpResponseServerError(content=', '.join(errors))
         return resp
+        """
 
     @classmethod
     def _prepare_django_request(cls, request):
+
         """Extract data from a Django request in the way that OneLogin expects."""
+        """
         result = {
             'https': 'on' if request.is_secure() else 'off',
             'http_host': request.META.get('HTTP_HOST', '127.0.0.1'),
@@ -215,3 +222,4 @@ class Saml2(LoginProvider):
         if cls.saml_settings['destination_port'] is not None:
             result['server_port'] = cls.saml_settings['destination_port']
         return result
+        """
