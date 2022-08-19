@@ -114,7 +114,7 @@ class Saml2(LoginProvider):
         #    logger.debug("Converts name format: %s", aconv.name_format)
 
         response.decrypt_attributes(attr_statem)
-        return to_local(response.attribute_converters, attr_statem,
+        return cls.to_local(response.attribute_converters, attr_statem,
                         response.allow_unknown_attributes)
 
     @classmethod
