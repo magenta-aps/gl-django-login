@@ -39,10 +39,10 @@ class Saml2(LoginProvider):
     @classmethod
     def login(cls, request, auth_params=None, login_params=None):
         """Kick off a SAML login request."""
-        config = Config()
-        config.load(settings.SAML)
+        config = Config().load(settings.SAML)
         client = Saml2Client(config=config)
-        r = client.prepare_for_authenticate(entityid=settings.SAML['idp_entity_id'])
+        print(client.metadata)
+        r = client.prepare_for_authenticate(entityid=settings.SAML['idp_entity_id'], binding=None)
         print(r)
         """
         if auth_params is None:
