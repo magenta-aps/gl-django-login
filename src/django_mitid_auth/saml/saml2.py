@@ -41,7 +41,8 @@ class Saml2(LoginProvider):
         """Kick off a SAML login request."""
         config = Config().load(settings.SAML)
         client = Saml2Client(config=config)
-        print(client.metadata)
+        print(type(client.metadata))
+        print(dir(client.metadata))
         r = client.prepare_for_authenticate(entityid=settings.SAML['idp_entity_id'], binding=None)
         print(r)
         """
