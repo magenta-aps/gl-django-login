@@ -7,6 +7,7 @@ from django.urls import reverse_lazy
 from django_mitid_auth.loginprovider import LoginProvider
 from saml2.config import Config
 from saml2.metadata import entity_descriptor, metadata_tostring_fix
+from saml2.client import Saml2Client
 
 from saml2.validate import valid_instance
 logger = logging.getLogger(__name__)
@@ -38,7 +39,9 @@ class Saml2(LoginProvider):
     @classmethod
     def login(cls, request, auth_params=None, login_params=None):
         """Kick off a SAML login request."""
-
+        client = Saml2Client(config=settings.SAML)
+        r = client.prepare_for_authenticate(entityid=settings.SAML['idp_entity_id'])
+        print(r)
         """
         if auth_params is None:
             auth_params = {}
