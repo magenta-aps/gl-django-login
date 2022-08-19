@@ -105,6 +105,31 @@ class Saml2(LoginProvider):
             'DjangoSessionID': request.session.session_key,
         }
 
+
+    @classmethod
+    def get_identity(cls, response):
+        ava = {}
+        for _assertion in response.assertions:
+            if _assertion.advice:
+                print("advice")
+                if _assertion.advice.assertion:
+                    for tmp_assertion in _assertion.advice.assertion:
+                        if tmp_assertion.attribute_statement:
+                            n_attr_statements = len(tmp_assertion.attribute_statement)
+                            if n_attr_statements != 1:
+                                msg = "Invalid number of AuthnStatement found in Response: {n}".format(n=n_attr_statements)
+                                raise Exception(msg)
+                            ava.update(response.read_attribute_statement(tmp_assertion.attribute_statement[0]))
+            if _assertion.attribute_statement:
+                print(_assertion.attribute_statement)
+                print(f"Assertion contains {len(response.assertion.attribute_statement)} attribute statement(s)")
+                for _attr_statem in _assertion.attribute_statement:
+                    print("Attribute Statement: %s" % (_attr_statem,))
+                    ava.update(response.read_attribute_statement(_attr_statem))
+            if not ava:
+                print("Assertion contains no attribute statements")
+        return ava
+
     @classmethod
     def handle_login_callback(cls, request, success_url):
         """Handle an AuthenticationResponse from the IdP."""
@@ -117,7 +142,7 @@ class Saml2(LoginProvider):
             'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
         )
         print(type(authn_response))
-        print(f"get_identity: {authn_response.get_identity()}")
+        print(f"get_identity: {cls.get_identity(authn_response)}")
         print(authn_response.attribute_converters)
         for assertion in authn_response.assertions:
             for attribute_statement in assertion.attribute_statement:
