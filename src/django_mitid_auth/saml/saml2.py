@@ -117,12 +117,12 @@ class Saml2(LoginProvider):
             'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
         )
         print(type(authn_response))
+        print(f"get_identity: {authn_response.get_identity()}")
         for assertion in authn_response.assertions:
-            print(type(assertion))
-            print(dir(assertion))
-            print(assertion.subject)
-            print(assertion.text)
-            print(assertion.to_string())
+            for attribute_statement in assertion.attribute_statement:
+                for attribute in attribute_statement.attribute:
+                    print(type(attribute))
+                    print(dir(attribute))
         return HttpResponseRedirect(success_url)
         """
         if request.method != 'POST':
