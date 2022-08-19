@@ -11,6 +11,8 @@ from saml2.client import Saml2Client
 from saml2 import BINDING_HTTP_REDIRECT
 from saml2 import BINDING_HTTP_POST
 from base64 import b64decode
+from saml2.attribute_converter import AttributeConverter
+from saml2.saml import NAME_FORMAT_UNSPECIFIED
 
 from saml2.validate import valid_instance
 logger = logging.getLogger(__name__)
@@ -105,6 +107,79 @@ class Saml2(LoginProvider):
             'DjangoSessionID': request.session.session_key,
         }
 
+    @classmethod
+    def read_attribute_statement(cls, response, attr_statem):
+        logger.debug("Attribute Statement: %s", attr_statem)
+        # for aconv in self.attribute_converters:
+        #    logger.debug("Converts name format: %s", aconv.name_format)
+
+        response.decrypt_attributes(attr_statem)
+        return to_local(response.attribute_converters, attr_statem,
+                        response.allow_unknown_attributes)
+
+    @classmethod
+    def to_local(cls, acs, statement, allow_unknown_attributes=False):
+        """ Replaces the attribute names in a attribute value assertion with the
+        equivalent name from a local name format.
+
+        :param acs: List of Attribute Converters
+        :param statement: The Attribute Statement
+        :param allow_unknown_attributes: If unknown attributes are allowed
+        :return: A key,values dictionary
+        """
+        return cls.list_to_local(acs, statement.attribute, allow_unknown_attributes)
+
+
+    def list_to_local(cls, acs, attrlist, allow_unknown_attributes=False):
+        """ Replaces the attribute names in a attribute value assertion with the
+        equivalent name from a local name format.
+
+        :param acs: List of Attribute Converters
+        :param attrlist: List of Attributes
+        :param allow_unknown_attributes: If unknown attributes are allowed
+        :return: A key,values dictionary
+        """
+        if not acs:
+            acs = [AttributeConverter()]
+            acsd = {"": acs}
+        else:
+            acsd = dict([(a.name_format, a) for a in acs])
+
+        for name_format, a in acsd.items():
+            print(f"{name_format} - {a._to}")
+        ava = {}
+        for attr in attrlist:
+            try:
+                _func = acsd[attr.name_format].ava_from
+            except KeyError:
+                if (
+                        attr.name_format == NAME_FORMAT_UNSPECIFIED
+                        or allow_unknown_attributes
+                ):
+                    _func = acs[0].lcd_ava_from
+                else:
+                    print("Unsupported attribute name format: %s", attr.name_format)
+                    continue
+
+            try:
+                key, val = _func(attr)
+            except KeyError:
+                if allow_unknown_attributes:
+                    key, val = acs[0].lcd_ava_from(attr)
+                else:
+                    print("Unknown attribute name: %s", attr)
+                    continue
+            except AttributeError:
+                continue
+
+            try:
+                ava[key].extend(val)
+            except KeyError:
+                ava[key] = val
+
+        return ava
+
+
 
     @classmethod
     def get_identity(cls, response):
@@ -119,13 +194,15 @@ class Saml2(LoginProvider):
                             if n_attr_statements != 1:
                                 msg = "Invalid number of AuthnStatement found in Response: {n}".format(n=n_attr_statements)
                                 raise Exception(msg)
-                            ava.update(response.read_attribute_statement(tmp_assertion.attribute_statement[0]))
+                            ava.update(cls.read_attribute_statement(response, tmp_assertion.attribute_statement[0]))
             if _assertion.attribute_statement:
                 print(_assertion.attribute_statement)
                 print(f"Assertion contains {len(response.assertion.attribute_statement)} attribute statement(s)")
                 for _attr_statem in _assertion.attribute_statement:
                     print("Attribute Statement: %s" % (_attr_statem,))
-                    ava.update(response.read_attribute_statement(_attr_statem))
+                    f = cls.read_attribute_statement(response, _attr_statem)
+                    print(f)
+                    ava.update(f)
             if not ava:
                 print("Assertion contains no attribute statements")
         return ava
