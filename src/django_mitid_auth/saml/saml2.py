@@ -10,6 +10,7 @@ from saml2.metadata import entity_descriptor, metadata_tostring_fix
 from saml2.client import Saml2Client
 from saml2 import BINDING_HTTP_REDIRECT
 from saml2 import BINDING_HTTP_POST
+from base64 import b64decode
 
 from saml2.validate import valid_instance
 logger = logging.getLogger(__name__)
@@ -43,8 +44,6 @@ class Saml2(LoginProvider):
         """Kick off a SAML login request."""
         config = Config().load(settings.SAML)
         client = Saml2Client(config=config)
-        print(type(client.metadata))
-        print(dir(client.metadata))
 
         saml_session_id, authrequest_data = client.prepare_for_authenticate(entityid=settings.SAML['idp_entity_id'])
         print(authrequest_data)
@@ -109,6 +108,17 @@ class Saml2(LoginProvider):
     @classmethod
     def handle_login_callback(cls, request, success_url):
         """Handle an AuthenticationResponse from the IdP."""
+        config = Config().load(settings.SAML)
+        client = Saml2Client(config=config)
+
+        xmlstr_b64 = request.POST['SAMLResponse']
+        xmlstr = b64decode(xmlstr_b64)
+        binding = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
+        print(xmlstr)
+        parsed = client.parse_authn_request_response(
+                xmlstr, binding
+        )
+        print(parsed)
         """
         if request.method != 'POST':
             return HttpResponse('Method not allowed.', status=405)
