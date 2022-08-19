@@ -112,7 +112,7 @@ class Saml2(LoginProvider):
         client = Saml2Client(config=config)
 
         xmlstr_b64 = request.POST['SAMLResponse']
-        xmlstr = b64decode(xmlstr_b64).decode()
+        xmlstr = xmlstr_b64  # b64decode(xmlstr_b64).decode()
         print(type(xmlstr))
         print(len(xmlstr))
         binding = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
