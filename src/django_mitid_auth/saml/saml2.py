@@ -43,6 +43,13 @@ class Saml2(LoginProvider):
         client = Saml2Client(config=config)
         print(type(client.metadata))
         print(dir(client.metadata))
+
+        for binding in [BINDING_HTTP_REDIRECT, BINDING_HTTP_POST]:
+            try:
+                print(client._sso_location('http://localhost:8888/simplesaml/saml2/idp/metadata.php', binding))
+            except Exception as e:
+                print(e)
+
         r = client.prepare_for_authenticate(entityid=settings.SAML['idp_entity_id'], binding=None)
         print(r)
         """
