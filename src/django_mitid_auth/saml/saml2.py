@@ -129,10 +129,11 @@ class Saml2(LoginProvider):
         request.session['saml'] = {
             key: value
             if not isinstance(value, NameID)
-            else value.to_string()
+            else value.to_string().decode("utf-8")
             for key, value in
             authn_response.session_info().items()
         }
+        print(request.session['saml'])
 
         return HttpResponseRedirect(success_url)
         """
