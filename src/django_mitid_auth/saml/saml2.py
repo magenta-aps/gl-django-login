@@ -12,7 +12,7 @@ from saml2 import BINDING_HTTP_REDIRECT
 from saml2 import BINDING_HTTP_POST
 from base64 import b64decode
 from saml2.attribute_converter import AttributeConverter
-from saml2.saml import NAME_FORMAT_UNSPECIFIED, name_id_type__from_string
+from saml2.saml import NAME_FORMAT_UNSPECIFIED, name_id_type__from_string, NameID
 
 from saml2.validate import valid_instance
 logger = logging.getLogger(__name__)
@@ -126,7 +126,13 @@ class Saml2(LoginProvider):
             for key, values in authn_response.get_identity().items()
         }
         print(request.session['user_info'])
-        request.session['saml'] = authn_response.session_info()
+        request.session['saml'] = {
+            key: value
+            if not isinstance(value, NameID)
+            else value.to_string()
+            for key, value in
+            authn_response.session_info().items()
+        }
 
         return HttpResponseRedirect(success_url)
         """
