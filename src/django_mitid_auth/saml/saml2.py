@@ -12,7 +12,7 @@ from saml2 import BINDING_HTTP_REDIRECT
 from saml2 import BINDING_HTTP_POST
 from base64 import b64decode
 from saml2.attribute_converter import AttributeConverter
-from saml2.saml import NAME_FORMAT_UNSPECIFIED
+from saml2.saml import NAME_FORMAT_UNSPECIFIED, name_id_type__from_string
 
 from saml2.validate import valid_instance
 logger = logging.getLogger(__name__)
@@ -175,7 +175,7 @@ class Saml2(LoginProvider):
         """Kick off a SAML logout request."""
         config = Config().load(settings.SAML)
         client = Saml2Client(config=config)
-        responses = client.global_logout(request.session['saml']['name_id'])
+        responses = client.global_logout(name_id_type__from_string(request.session['saml']['name_id_xml']))
         print(f"responses: {responses}")
 
         """
