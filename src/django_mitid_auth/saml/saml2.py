@@ -207,7 +207,11 @@ class Saml2(LoginProvider):
         #     sign_alg=None,
         #     digest_alg=None,
         # )
-        responses = client.global_logout(request.session['saml']['name_id'])
+        responses = client.global_logout(
+            name_id_from_string(
+                request.session['saml']['name_id']
+            )
+        )
 
         logoutrequest_data = responses[idp_entity_id][1]
         cls.save_client(client)
