@@ -1,24 +1,17 @@
 import logging
 from django.conf import settings
 from django.contrib import auth
-from django.core.exceptions import PermissionDenied
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseServerError
-from django.urls import reverse_lazy
 from django.core.cache import caches
+from django.http import HttpResponse, HttpResponseRedirect
+from django.urls import reverse_lazy
 from django_mitid_auth.loginprovider import LoginProvider
+from saml2.cache import Cache
+from saml2.client import Saml2Client
 from saml2.config import Config
 from saml2.metadata import entity_descriptor, metadata_tostring_fix
-from saml2.client import Saml2Client
-from saml2 import BINDING_HTTP_REDIRECT
-from saml2 import BINDING_HTTP_POST
-from base64 import b64decode
-from saml2.attribute_converter import AttributeConverter
-import six
-from saml2.saml import NAME_FORMAT_UNSPECIFIED, name_id_from_string, NameID, NameIDType_
-from saml2.cache import Cache
-
-import defusedxml.ElementTree
+from saml2.saml import name_id_from_string, NameID
 from saml2.validate import valid_instance
+
 logger = logging.getLogger(__name__)
 
 
@@ -148,7 +141,6 @@ class Saml2(LoginProvider):
             else values
             for key, values in authn_response.get_identity().items()
         }
-        print(request.session['user_info'])
         request.session['saml'] = {
             key: value
             if not isinstance(value, NameID)
@@ -156,7 +148,6 @@ class Saml2(LoginProvider):
             for key, value in
             authn_response.session_info().items()
         }
-        print(request.session['saml'])
         cls.save_client(client)
         return HttpResponseRedirect(success_url)
         """
@@ -217,9 +208,7 @@ class Saml2(LoginProvider):
             digest_alg=None,
         )
 
-        print(f"responses: {responses}")
         logoutrequest_data = responses[idp_entity_id][1]
-        print(logoutrequest_data)
         cls.save_client(client)
         return HttpResponse(status=logoutrequest_data['status'], headers=logoutrequest_data['headers'])
         """
@@ -246,11 +235,6 @@ class Saml2(LoginProvider):
         """Handle a LogoutResponse from the IdP."""
         client = cls.client()
 
-        # client.handle_logout_request(
-        #     request=request.GET['SAMLResponse'],  # TODO: POST or GET?
-        #     name_id=name_id_from_string(request.session['saml']['name_id']),
-        #     binding='urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'  # POST or Redirect?
-        # )
         logout_response = client.parse_logout_request_response(
             request.GET['SAMLResponse'],
             'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'
@@ -305,7 +289,6 @@ class Saml2(LoginProvider):
         xmldoc = None
         nspair = {"xs": "http://www.w3.org/2001/XMLSchema"}
         xmldoc = metadata_tostring_fix(eid, nspair, xmldoc)
-        print(xmldoc.decode("utf-8"))
         return HttpResponse(content=xmldoc.decode("utf-8"), content_type='text/xml')
         """
         metadata_dict = cls.onelogin_settings.get_sp_metadata()
