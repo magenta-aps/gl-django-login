@@ -47,12 +47,18 @@ class Saml2(LoginProvider):
 
     @staticmethod
     def client():
+        # This is not pretty, but we need to save the client's state between requests, and it will not be pickled as a whole,
+        # so extract the important bits and save/restore them
         cache = caches['saml']
         client_state = cache.get('client_state_cache') or {}
         client_identity = cache.get('client_identity_cache') or {}
         identity_cache = Cache()
         identity_cache._db = client_identity
-        client = Saml2Client(config=Config().load(settings.SAML), identity_cache=identity_cache, state_cache=client_state)
+        client = Saml2Client(
+            config=Config().load(settings.SAML),
+            identity_cache=identity_cache,
+            state_cache=client_state
+        )
         return client
 
     @staticmethod
@@ -65,9 +71,7 @@ class Saml2(LoginProvider):
     def login(cls, request, auth_params=None, login_params=None):
         """Kick off a SAML login request."""
         client = cls.client()
-
         saml_session_id, authrequest_data = client.prepare_for_authenticate(entityid=settings.SAML['idp_entity_id'])
-        print(authrequest_data)
         request.session['AuthNRequestID'] = saml_session_id
         cls.save_client(client)
         return HttpResponse(status=authrequest_data['status'], headers=authrequest_data['headers'])
@@ -260,7 +264,7 @@ class Saml2(LoginProvider):
             auth.logout(request)
             cls.clear_session(request.session)
             request.session.flush()
-            redirect_to = cls.saml_settings['logout_redirect']
+            redirect_to = settings.LOGOUT_REDIRECT_URL
             return HttpResponseRedirect(redirect_to)
 
         """
