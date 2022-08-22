@@ -182,7 +182,7 @@ class Saml2(LoginProvider):
         """Kick off a SAML logout request."""
         config = Config().load(settings.SAML)
         client = Saml2Client(config=config)
-        responses = client.global_logout(name_id_type__from_string(request.session['saml']['name_id_xml']))
+        responses = client.global_logout(name_id_type__from_string(request.session['saml']['name_id']))
         print(f"responses: {responses}")
 
         """
