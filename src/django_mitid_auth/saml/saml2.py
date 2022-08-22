@@ -198,7 +198,16 @@ class Saml2(LoginProvider):
         except Exception as e:
             print(e)
 
-        responses = client.global_logout(name_id_from_string(request.session['saml']['name_id']))
+        # responses = client.global_logout(name_id_from_string(request.session['saml']['name_id']))
+        responses = client.do_logout(
+            name_id_from_string(request.session['saml']['name_id']),
+            [settings.SAML['idp_entity_id']],
+            reason='',
+            expire=None,
+            sign=None,
+            sign_alg=None,
+            digest_alg=None,
+        )
         print(f"responses: {responses}")
 
         """
