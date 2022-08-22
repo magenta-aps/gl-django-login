@@ -39,7 +39,7 @@ class Saml2(LoginProvider):
     }
 
     @staticmethod
-    def client():
+    def get_client():
         # This is not pretty, but we need to save the client's state between requests, and it will not be pickled as a whole,
         # so extract the important bits and save/restore them
         cache = caches['saml']
@@ -63,7 +63,7 @@ class Saml2(LoginProvider):
     @classmethod
     def login(cls, request, auth_params=None, login_params=None):
         """Kick off a SAML login request."""
-        client = cls.client()
+        client = cls.get_client()
         saml_session_id, authrequest_data = client.prepare_for_authenticate(entityid=settings.SAML['idp_entity_id'])
         request.session['AuthNRequestID'] = saml_session_id
         cls.save_client(client)
@@ -127,7 +127,7 @@ class Saml2(LoginProvider):
     @classmethod
     def handle_login_callback(cls, request, success_url):
         """Handle an AuthenticationResponse from the IdP."""
-        client = cls.client()
+        client = cls.get_client()
 
         # authn_response is of type saml2.response.AuthnResponse
         authn_response = client.parse_authn_request_response(
@@ -194,19 +194,20 @@ class Saml2(LoginProvider):
     @classmethod
     def logout(cls, request):
         """Kick off a SAML logout request."""
-        client = cls.client()
+        client = cls.get_client()
         idp_entity_id = settings.SAML['idp_entity_id']
 
         # responses = client.global_logout(name_id_from_string(request.session['saml']['name_id']))
-        responses = client.do_logout(
-            name_id_from_string(request.session['saml']['name_id']),
-            [idp_entity_id],
-            reason='',
-            expire=None,
-            sign=None,
-            sign_alg=None,
-            digest_alg=None,
-        )
+        # responses = client.do_logout(
+        #     name_id_from_string(request.session['saml']['name_id']),
+        #     [idp_entity_id],
+        #     reason='',
+        #     expire=None,
+        #     sign=None,
+        #     sign_alg=None,
+        #     digest_alg=None,
+        # )
+        responses = client.global_logout(request.session['saml']['name_id'])
 
         logoutrequest_data = responses[idp_entity_id][1]
         cls.save_client(client)
@@ -233,7 +234,7 @@ class Saml2(LoginProvider):
     @classmethod
     def handle_logout_callback(cls, request):
         """Handle a LogoutResponse from the IdP."""
-        client = cls.client()
+        client = cls.get_client()
 
         logout_response = client.parse_logout_request_response(
             request.GET['SAMLResponse'],
