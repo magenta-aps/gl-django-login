@@ -47,19 +47,19 @@ class Saml2(LoginProvider):
     @staticmethod
     def client():
         cache = caches['saml']
-        client = cache.get('client')
-        if not client:
-            client = Saml2Client(config=Config().load(settings.SAML))
-            cache.set('client', client)
-            print("new client")
+        client = Saml2Client(config=Config().load(settings.SAML))
+        client_state = cache.get('client_state')
+        if client_state:
+            client.state = client_state
+            print("reused client state")
         else:
-            print("reused client")
+            print("blank client")
         return client
 
     @staticmethod
     def save_client(client):
         cache = caches['saml']
-        cache.set('client', client)
+        cache.set('client_state', client.state)
 
     @classmethod
     def login(cls, request, auth_params=None, login_params=None):
