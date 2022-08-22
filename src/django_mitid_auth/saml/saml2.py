@@ -184,19 +184,23 @@ class Saml2(LoginProvider):
         """Kick off a SAML logout request."""
         config = Config().load(settings.SAML)
         client = Saml2Client(config=config)
+        idp_entity_id = settings.SAML['idp_entity_id']
 
         # responses = client.global_logout(name_id_from_string(request.session['saml']['name_id']))
         responses = client.do_logout(
             name_id_from_string(request.session['saml']['name_id']),
-            [settings.SAML['idp_entity_id']],
+            [idp_entity_id],
             reason='',
             expire=None,
             sign=None,
             sign_alg=None,
             digest_alg=None,
         )
-        print(f"responses: {responses}")
 
+        print(f"responses: {responses}")
+        logoutrequest_data = responses[idp_entity_id]
+        print(logoutrequest_data)
+        return HttpResponse(status=logoutrequest_data['status'], headers=logoutrequest_data['headers'])
         """
         req = cls._prepare_django_request(request)
         saml_auth = OneLogin_Saml2_Auth(req, old_settings=cls.onelogin_settings)
