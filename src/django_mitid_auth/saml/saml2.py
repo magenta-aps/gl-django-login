@@ -118,7 +118,6 @@ class Saml2(LoginProvider):
             request.POST['SAMLResponse'],
             'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
         )
-        print(f"get_identity: {authn_response.get_identity()}")
 
         request.session['user_info'] = {
             key: values[0]
@@ -127,6 +126,7 @@ class Saml2(LoginProvider):
             for key, values in authn_response.get_identity().items()
         }
         print(request.session['user_info'])
+        request.session['saml'] = authn_response.session_info()
 
         return HttpResponseRedirect(success_url)
         """
@@ -173,6 +173,11 @@ class Saml2(LoginProvider):
     @classmethod
     def logout(cls, request):
         """Kick off a SAML logout request."""
+        config = Config().load(settings.SAML)
+        client = Saml2Client(config=config)
+        responses = client.global_logout(request.session['saml']['name_id'])
+        print(f"responses: {responses}")
+
         """
         req = cls._prepare_django_request(request)
         saml_auth = OneLogin_Saml2_Auth(req, old_settings=cls.onelogin_settings)
@@ -195,6 +200,9 @@ class Saml2(LoginProvider):
     @classmethod
     def handle_logout_callback(cls, request):
         """Handle a LogoutResponse from the IdP."""
+        config = Config().load(settings.SAML)
+        client = Saml2Client(config=config)
+        client.handle_logout_response()
         """
         if request.method != 'GET':
             return HttpResponse('Method not allowed.', status=405)
