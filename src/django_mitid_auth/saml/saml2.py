@@ -225,7 +225,11 @@ class Saml2(LoginProvider):
         """Handle a LogoutResponse from the IdP."""
         config = Config().load(settings.SAML)
         client = Saml2Client(config=config)
-        client.handle_logout_response()
+        client.handle_logout_request(
+            request=request.POST['SAMLResponse'],
+            name_id=name_id_from_string(request.session['saml']['name_id']),
+            binding='urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
+        )
         """
         if request.method != 'GET':
             return HttpResponse('Method not allowed.', status=405)
