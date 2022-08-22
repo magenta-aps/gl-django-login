@@ -16,18 +16,6 @@ logger = logging.getLogger(__name__)
 
 
 class Saml2(LoginProvider):
-    """
-    Borrows heavily from python3-saml-django
-    https://pypi.org/project/python3-saml-django/
-
-    We do this because we don't map logins to preexisting users in django, or even create users as they log in
-    Instead we save their details (CPR, CVR etc.) in the session and clear the session on logout
-    python3-saml-django couldn't do this for us, so we roll our own
-    """
-
-    saml_settings = settings.SAML
-    # onelogin_settings = OneLogin_Saml2_Settings(saml_settings, saml_settings['base_directory'])
-
     whitelist = [
         reverse_lazy(settings.LOGIN_NAMESPACE + ':saml:metadata')
     ]
@@ -136,9 +124,7 @@ class Saml2(LoginProvider):
         )
 
         request.session['user_info'] = {
-            key: values[0]
-            if type(values) == list and len(values) == 1
-            else values
+            key: values[0] if type(values) == list and len(values) == 1 else values
             for key, values in authn_response.get_identity().items()
         }
         request.session['saml'] = {
@@ -197,16 +183,6 @@ class Saml2(LoginProvider):
         client = cls.get_client()
         idp_entity_id = settings.SAML['idp_entity_id']
 
-        # responses = client.global_logout(name_id_from_string(request.session['saml']['name_id']))
-        # responses = client.do_logout(
-        #     name_id_from_string(request.session['saml']['name_id']),
-        #     [idp_entity_id],
-        #     reason='',
-        #     expire=None,
-        #     sign=None,
-        #     sign_alg=None,
-        #     digest_alg=None,
-        # )
         responses = client.global_logout(
             name_id_from_string(
                 request.session['saml']['name_id']
@@ -305,11 +281,11 @@ class Saml2(LoginProvider):
         return resp
         """
 
+    """
     @classmethod
     def _prepare_django_request(cls, request):
 
-        """Extract data from a Django request in the way that OneLogin expects."""
-        """
+        # Extract data from a Django request in the way that OneLogin expects.
         result = {
             'https': 'on' if request.is_secure() else 'off',
             'http_host': request.META.get('HTTP_HOST', '127.0.0.1'),
@@ -326,4 +302,4 @@ class Saml2(LoginProvider):
         if cls.saml_settings['destination_port'] is not None:
             result['server_port'] = cls.saml_settings['destination_port']
         return result
-        """
+    """
