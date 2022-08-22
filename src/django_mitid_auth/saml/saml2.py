@@ -12,8 +12,10 @@ from saml2 import BINDING_HTTP_REDIRECT
 from saml2 import BINDING_HTTP_POST
 from base64 import b64decode
 from saml2.attribute_converter import AttributeConverter
-from saml2.saml import NAME_FORMAT_UNSPECIFIED, name_id_type__from_string, NameID
+import six
+from saml2.saml import NAME_FORMAT_UNSPECIFIED, name_id_type__from_string, NameID, NameIDType_,
 
+import defusedxml.ElementTree
 from saml2.validate import valid_instance
 logger = logging.getLogger(__name__)
 
@@ -184,6 +186,18 @@ class Saml2(LoginProvider):
         client = Saml2Client(config=config)
         print(request.session['saml']['name_id'])
         print(name_id_type__from_string(request.session['saml']['name_id']))
+        print(NameIDType_.c_namespace)
+        print(NameIDType_.c_tag)
+
+        try:
+            xml_string = request.session['saml']['name_id']
+            if not isinstance(xml_string, six.binary_type):
+                xml_string = xml_string.encode('utf-8')
+            tree = defusedxml.ElementTree.fromstring(xml_string)
+            print(tree.tag)
+        except Exception as e:
+            print(e)
+
         responses = client.global_logout(name_id_type__from_string(request.session['saml']['name_id']))
         print(f"responses: {responses}")
 
