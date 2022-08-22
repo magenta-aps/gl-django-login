@@ -4,6 +4,7 @@ from django.contrib import auth
 from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseServerError
 from django.urls import reverse_lazy
+from django.core.cache import caches
 from django_mitid_auth.loginprovider import LoginProvider
 from saml2.config import Config
 from saml2.metadata import entity_descriptor, metadata_tostring_fix
@@ -43,15 +44,32 @@ class Saml2(LoginProvider):
         'PersonName': 'http://schemas.microsoft.com/identity/claims/displayname',
     }
 
+    @staticmethod
+    def client():
+        cache = caches['saml']
+        client = cache.get('client')
+        if not client:
+            client = Saml2Client(config=Config().load(settings.SAML))
+            cache.set('client', client)
+            print("new client")
+        else:
+            print("reused client")
+        return client
+
+    @staticmethod
+    def save_client(client):
+        cache = caches['saml']
+        cache.set('client', client)
+
     @classmethod
     def login(cls, request, auth_params=None, login_params=None):
         """Kick off a SAML login request."""
-        config = Config().load(settings.SAML)
-        client = Saml2Client(config=config)
+        client = cls.client()
 
         saml_session_id, authrequest_data = client.prepare_for_authenticate(entityid=settings.SAML['idp_entity_id'])
         print(authrequest_data)
         request.session['AuthNRequestID'] = saml_session_id
+        cls.save_client(client)
         return HttpResponse(status=authrequest_data['status'], headers=authrequest_data['headers'])
         """
         if auth_params is None:
@@ -112,8 +130,7 @@ class Saml2(LoginProvider):
     @classmethod
     def handle_login_callback(cls, request, success_url):
         """Handle an AuthenticationResponse from the IdP."""
-        config = Config().load(settings.SAML)
-        client = Saml2Client(config=config)
+        client = cls.client()
 
         # authn_response is of type saml2.response.AuthnResponse
         authn_response = client.parse_authn_request_response(
@@ -136,7 +153,7 @@ class Saml2(LoginProvider):
             authn_response.session_info().items()
         }
         print(request.session['saml'])
-
+        cls.save_client(client)
         return HttpResponseRedirect(success_url)
         """
         if request.method != 'POST':
@@ -182,8 +199,7 @@ class Saml2(LoginProvider):
     @classmethod
     def logout(cls, request):
         """Kick off a SAML logout request."""
-        config = Config().load(settings.SAML)
-        client = Saml2Client(config=config)
+        client = cls.client()
         idp_entity_id = settings.SAML['idp_entity_id']
 
         # responses = client.global_logout(name_id_from_string(request.session['saml']['name_id']))
@@ -200,6 +216,7 @@ class Saml2(LoginProvider):
         print(f"responses: {responses}")
         logoutrequest_data = responses[idp_entity_id][1]
         print(logoutrequest_data)
+        cls.save_client(client)
         return HttpResponse(status=logoutrequest_data['status'], headers=logoutrequest_data['headers'])
         """
         req = cls._prepare_django_request(request)
@@ -223,8 +240,7 @@ class Saml2(LoginProvider):
     @classmethod
     def handle_logout_callback(cls, request):
         """Handle a LogoutResponse from the IdP."""
-        config = Config().load(settings.SAML)
-        client = Saml2Client(config=config)
+        client = cls.client()
 
         # client.handle_logout_request(
         #     request=request.GET['SAMLResponse'],  # TODO: POST or GET?
@@ -239,6 +255,7 @@ class Saml2(LoginProvider):
             response=logout_response
         )
         print(r)
+        cls.save_client(client)
 
         """
         if request.method != 'GET':
