@@ -232,7 +232,7 @@ class Saml2(LoginProvider):
         #     binding='urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'  # POST or Redirect?
         # )
         logout_response = client.parse_logout_request_response(
-            request.POST['SAMLResponse'],
+            request.GET['SAMLResponse'],
             'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'
         )
         r = client.handle_logout_response(
