@@ -198,7 +198,7 @@ class Saml2(LoginProvider):
         )
 
         print(f"responses: {responses}")
-        logoutrequest_data = responses[idp_entity_id]
+        logoutrequest_data = responses[idp_entity_id][1]
         print(logoutrequest_data)
         return HttpResponse(status=logoutrequest_data['status'], headers=logoutrequest_data['headers'])
         """
