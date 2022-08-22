@@ -184,19 +184,6 @@ class Saml2(LoginProvider):
         """Kick off a SAML logout request."""
         config = Config().load(settings.SAML)
         client = Saml2Client(config=config)
-        print(request.session['saml']['name_id'])
-        print(name_id_from_string(request.session['saml']['name_id']))
-        print(NameIDType_.c_namespace)
-        print(NameIDType_.c_tag)
-
-        try:
-            xml_string = request.session['saml']['name_id']
-            if not isinstance(xml_string, six.binary_type):
-                xml_string = xml_string.encode('utf-8')
-            tree = defusedxml.ElementTree.fromstring(xml_string)
-            print(tree.tag)
-        except Exception as e:
-            print(e)
 
         # responses = client.global_logout(name_id_from_string(request.session['saml']['name_id']))
         responses = client.do_logout(
