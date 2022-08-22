@@ -251,11 +251,17 @@ class Saml2(LoginProvider):
             request.GET['SAMLResponse'],
             'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'
         )
-        r = client.handle_logout_response(
+        session_id, message, headers, msg = client.handle_logout_response(
             response=logout_response
         )
-        print(r)
+
         cls.save_client(client)
+        if message == '200 Ok':
+            auth.logout(request)
+            cls.clear_session(request.session)
+            request.session.flush()
+            redirect_to = cls.saml_settings['logout_redirect']
+            return HttpResponseRedirect(redirect_to)
 
         """
         if request.method != 'GET':
