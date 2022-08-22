@@ -226,7 +226,7 @@ class Saml2(LoginProvider):
         config = Config().load(settings.SAML)
         client = Saml2Client(config=config)
         client.handle_logout_request(
-            request=request.POST['SAMLResponse'],
+            request=request.GET['SAMLResponse'],
             name_id=name_id_from_string(request.session['saml']['name_id']),
             binding='urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
         )
