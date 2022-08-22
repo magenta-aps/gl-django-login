@@ -13,7 +13,7 @@ from saml2 import BINDING_HTTP_POST
 from base64 import b64decode
 from saml2.attribute_converter import AttributeConverter
 import six
-from saml2.saml import NAME_FORMAT_UNSPECIFIED, name_id_type__from_string, NameID, NameIDType_
+from saml2.saml import NAME_FORMAT_UNSPECIFIED, name_id_from_string, NameID, NameIDType_
 
 import defusedxml.ElementTree
 from saml2.validate import valid_instance
@@ -185,7 +185,7 @@ class Saml2(LoginProvider):
         config = Config().load(settings.SAML)
         client = Saml2Client(config=config)
         print(request.session['saml']['name_id'])
-        print(name_id_type__from_string(request.session['saml']['name_id']))
+        print(name_id_from_string(request.session['saml']['name_id']))
         print(NameIDType_.c_namespace)
         print(NameIDType_.c_tag)
 
@@ -198,7 +198,7 @@ class Saml2(LoginProvider):
         except Exception as e:
             print(e)
 
-        responses = client.global_logout(name_id_type__from_string(request.session['saml']['name_id']))
+        responses = client.global_logout(name_id_from_string(request.session['saml']['name_id']))
         print(f"responses: {responses}")
 
         """
