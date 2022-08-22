@@ -15,6 +15,7 @@ from base64 import b64decode
 from saml2.attribute_converter import AttributeConverter
 import six
 from saml2.saml import NAME_FORMAT_UNSPECIFIED, name_id_from_string, NameID, NameIDType_
+from saml2.cache import Cache
 
 import defusedxml.ElementTree
 from saml2.validate import valid_instance
@@ -47,16 +48,18 @@ class Saml2(LoginProvider):
     @staticmethod
     def client():
         cache = caches['saml']
-        client_state = cache.get('client_state_cache')
-        client_identity = cache.get('client_identity_cache')
-        client = Saml2Client(config=Config().load(settings.SAML), identity_cache=client_identity, state_cache=client_state)
+        client_state = cache.get('client_state_cache') or {}
+        client_identity = cache.get('client_identity_cache') or {}
+        identity_cache = Cache()
+        identity_cache._db = client_identity
+        client = Saml2Client(config=Config().load(settings.SAML), identity_cache=identity_cache, state_cache=client_state)
         return client
 
     @staticmethod
     def save_client(client):
         cache = caches['saml']
         cache.set('client_state_cache', client.state)
-        cache.set('client_identity_cache', client.users.cache)
+        cache.set('client_identity_cache', client.users.cache._db)
 
     @classmethod
     def login(cls, request, auth_params=None, login_params=None):
