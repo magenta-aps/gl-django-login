@@ -11,6 +11,7 @@ from saml2.config import Config
 from saml2.metadata import entity_descriptor, metadata_tostring_fix
 from saml2.saml import name_id_from_string, NameID
 from saml2.validate import valid_instance
+from saml2 import md
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,14 @@ class Saml2(LoginProvider):
     def login(cls, request, auth_params=None, login_params=None):
         """Kick off a SAML login request."""
         client = cls.get_client()
-        saml_session_id, authrequest_data = client.prepare_for_authenticate(entityid=settings.SAML['idp_entity_id'], attribute_consuming_service_index='1')
+        saml_session_id, authrequest_data = client.prepare_for_authenticate(
+            entityid=settings.SAML['idp_entity_id'],
+            attribute_consuming_service_index='1',
+            relay_state="https://test.akap.sullissivik.gl:8000/",
+            sigalg=settings.SAML['service']['sp']['signing_algorithm'],
+            sign_prepare=False,
+            sign=True,
+        )
         request.session['AuthNRequestID'] = saml_session_id
         cls.save_client(client)
         return HttpResponse(status=authrequest_data['status'], headers=authrequest_data['headers'])
@@ -265,6 +273,17 @@ class Saml2(LoginProvider):
 
         cnf = Config().load(settings.SAML)
         eid = entity_descriptor(cnf)
+
+        key_descriptors = eid.spsso_descriptor.key_descriptor
+        if type(key_descriptors) != list:
+            key_descriptors = [key_descriptors]
+        for key_descriptor in key_descriptors:
+            if key_descriptor.use == 'encryption':
+                enc1 = md.EncryptionMethod()
+                enc1.algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"
+                enc2 = md.EncryptionMethod()
+                enc2.algorithm="http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p"
+                key_descriptor.encryption_method = [enc1, enc2]
 
         valid_instance(eid)
         xmldoc = None
