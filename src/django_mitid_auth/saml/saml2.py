@@ -295,6 +295,8 @@ class Saml2(LoginProvider):
 
     @staticmethod
     def _set_metadata_encryption_method(key_descriptors):
+        print(EncryptionMethod.c_children)
+        print(DigestMethod.c_attributes)
         if type(key_descriptors) != list:
             key_descriptors = [key_descriptors]
         for key_descriptor in key_descriptors:
@@ -356,7 +358,6 @@ class EncryptionMethod(md.EncryptionMethod):
         '{http://www.w3.org/2001/04/xmlenc#}DigestMethod': ('digest_method', DigestMethod)
     }
 
-print(EncryptionMethod.c_children)
 
 
 # xmlenc.EncryptionMethodType_.c_children['{http://www.w3.org/2001/04/xmlenc#}DigestMethod'] = ('digest_method', DigestMethod)
