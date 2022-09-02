@@ -359,8 +359,3 @@ class EncryptionMethod(md.EncryptionMethod):
     }
     c_child_order = md.EncryptionMethod.c_child_order[:]
     c_child_order.append('digest_method')
-
-
-
-# xmlenc.EncryptionMethodType_.c_children['{http://www.w3.org/2001/04/xmlenc#}DigestMethod'] = ('digest_method', DigestMethod)
-# md.EncryptionMethod.c_children = xmlenc.EncryptionMethodType_.c_children.copy()
