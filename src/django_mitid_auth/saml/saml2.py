@@ -305,7 +305,7 @@ class Saml2(LoginProvider):
                 enc2.algorithm="http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p"
                 dig = DigestMethod()
                 dig.algorithm = "http://www.w3.org/2000/09/xmldsig#sha1"
-                enc2.digest_method = dig
+                enc2.digest_method = [dig]
                 key_descriptor.encryption_method = [enc2]
 
     """
