@@ -306,7 +306,7 @@ class Saml2(LoginProvider):
                 dig = DigestMethod()
                 dig.algorithm = "http://www.w3.org/2000/09/xmldsig#sha1"
                 enc2.digest_method = dig
-                key_descriptor.encryption_method = [enc1, enc2]
+                key_descriptor.encryption_method = [enc2]
 
     """
     @classmethod
