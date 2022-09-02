@@ -356,6 +356,7 @@ class EncryptionMethod(md.EncryptionMethod):
         '{http://www.w3.org/2001/04/xmlenc#}DigestMethod': ('digest_method', DigestMethod)
     }
 
+print(EncryptionMethod.c_children)
 
 
 # xmlenc.EncryptionMethodType_.c_children['{http://www.w3.org/2001/04/xmlenc#}DigestMethod'] = ('digest_method', DigestMethod)
