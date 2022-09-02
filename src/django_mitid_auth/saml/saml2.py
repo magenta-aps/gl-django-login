@@ -351,7 +351,10 @@ class DigestMethod(DigestMethodType):
 
 
 class EncryptionMethod(md.EncryptionMethod):
-    c_children = md.EncryptionMethod.c_children.copy() + {'{http://www.w3.org/2001/04/xmlenc#}DigestMethod': ('digest_method', DigestMethod)}
+    c_children = {
+        **md.EncryptionMethod.c_children.copy(),
+        '{http://www.w3.org/2001/04/xmlenc#}DigestMethod': ('digest_method', DigestMethod)
+    }
 
 
 
