@@ -301,8 +301,8 @@ class Saml2(LoginProvider):
             key_descriptors = [key_descriptors]
         for key_descriptor in key_descriptors:
             if key_descriptor.use == 'encryption':
-                # enc1 = md.EncryptionMethod()
-                # enc1.algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"
+                enc1 = md.EncryptionMethod()
+                enc1.algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"
                 enc2 = EncryptionMethod()
                 enc2.algorithm="http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p"
                 dig = DigestMethod()
@@ -357,6 +357,8 @@ class EncryptionMethod(md.EncryptionMethod):
         **md.EncryptionMethod.c_children.copy(),
         '{http://www.w3.org/2001/04/xmlenc#}DigestMethod': ('digest_method', DigestMethod)
     }
+    c_child_order = md.EncryptionMethod.c_child_order[:]
+    c_child_order.append('digest_method')
 
 
 
