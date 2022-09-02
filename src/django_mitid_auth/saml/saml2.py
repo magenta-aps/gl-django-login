@@ -301,7 +301,7 @@ class Saml2(LoginProvider):
             if key_descriptor.use == 'encryption':
                 # enc1 = md.EncryptionMethod()
                 # enc1.algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"
-                enc2 = md.EncryptionMethod()
+                enc2 = EncryptionMethod()
                 enc2.algorithm="http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p"
                 dig = DigestMethod()
                 dig.algorithm = "http://www.w3.org/2000/09/xmldsig#sha1"
@@ -350,5 +350,10 @@ class DigestMethod(DigestMethodType):
     c_cardinality = DigestMethodType.c_cardinality.copy()
 
 
-xmlenc.EncryptionMethodType_.c_children['{http://www.w3.org/2001/04/xmlenc#}DigestMethod'] = ('digest_method', DigestMethod)
-md.EncryptionMethod.c_children = xmlenc.EncryptionMethodType_.c_children.copy()
+class EncryptionMethod(md.EncryptionMethod):
+    c_children = md.EncryptionMethod.c_children.copy() + {'{http://www.w3.org/2001/04/xmlenc#}DigestMethod': ('digest_method', DigestMethod)}
+
+
+
+# xmlenc.EncryptionMethodType_.c_children['{http://www.w3.org/2001/04/xmlenc#}DigestMethod'] = ('digest_method', DigestMethod)
+# md.EncryptionMethod.c_children = xmlenc.EncryptionMethodType_.c_children.copy()
