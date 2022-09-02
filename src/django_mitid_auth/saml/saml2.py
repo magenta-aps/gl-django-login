@@ -12,6 +12,8 @@ from saml2.metadata import entity_descriptor, metadata_tostring_fix
 from saml2.saml import name_id_from_string, NameID
 from saml2.validate import valid_instance
 from saml2 import md
+from saml2 import SamlBase
+from saml2 import xmlenc
 
 logger = logging.getLogger(__name__)
 
@@ -274,16 +276,7 @@ class Saml2(LoginProvider):
         cnf = Config().load(settings.SAML)
         eid = entity_descriptor(cnf)
 
-        key_descriptors = eid.spsso_descriptor.key_descriptor
-        if type(key_descriptors) != list:
-            key_descriptors = [key_descriptors]
-        for key_descriptor in key_descriptors:
-            if key_descriptor.use == 'encryption':
-                enc1 = md.EncryptionMethod()
-                enc1.algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"
-                enc2 = md.EncryptionMethod()
-                enc2.algorithm="http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p"
-                key_descriptor.encryption_method = [enc1, enc2]
+        cls._set_metadata_encryption_method(eid.spsso_descriptor.key_descriptor)
 
         valid_instance(eid)
         xmldoc = None
@@ -299,6 +292,21 @@ class Saml2(LoginProvider):
             resp = HttpResponseServerError(content=', '.join(errors))
         return resp
         """
+
+    @staticmethod
+    def _set_metadata_encryption_method(key_descriptors):
+        if type(key_descriptors) != list:
+            key_descriptors = [key_descriptors]
+        for key_descriptor in key_descriptors:
+            if key_descriptor.use == 'encryption':
+                # enc1 = md.EncryptionMethod()
+                # enc1.algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"
+                enc2 = md.EncryptionMethod()
+                enc2.algorithm="http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p"
+                dig = DigestMethod()
+                dig.algorithm = "http://www.w3.org/2000/09/xmldsig#sha1"
+                enc2.digest_method = dig
+                key_descriptor.encryption_method = [enc1, enc2]
 
     """
     @classmethod
@@ -322,3 +330,25 @@ class Saml2(LoginProvider):
             result['server_port'] = cls.saml_settings['destination_port']
         return result
     """
+
+class DigestMethodType(SamlBase):
+    c_tag = 'DigestMethodType'
+    c_namespace = md.NAMESPACE
+    c_children = SamlBase.c_children.copy()
+    c_attributes = SamlBase.c_attributes.copy()
+    c_child_order = SamlBase.c_child_order[:]
+    c_cardinality = SamlBase.c_cardinality.copy()
+    c_attributes['Algorithm'] = ('algorithm', 'anyURI', True)
+
+
+class DigestMethod(DigestMethodType):
+    c_tag = 'DigestMethod'
+    c_namespace = md.NAMESPACE
+    c_children = DigestMethodType.c_children.copy()
+    c_attributes = DigestMethodType.c_attributes.copy()
+    c_child_order = DigestMethodType.c_child_order[:]
+    c_cardinality = DigestMethodType.c_cardinality.copy()
+
+
+xmlenc.EncryptionMethodType_.c_children['{http://www.w3.org/2001/04/xmlenc#}DigestMethod'] = ('digest_method', DigestMethod)
+md.EncryptionMethod.c_children = xmlenc.EncryptionMethodType_.c_children.copy()
