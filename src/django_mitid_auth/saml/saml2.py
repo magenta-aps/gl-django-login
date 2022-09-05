@@ -295,8 +295,6 @@ class Saml2(LoginProvider):
 
     @staticmethod
     def _set_metadata_encryption_method(key_descriptors):
-        print(EncryptionMethod.c_children)
-        print(DigestMethod.c_attributes)
         if type(key_descriptors) != list:
             key_descriptors = [key_descriptors]
         for key_descriptor in key_descriptors:
