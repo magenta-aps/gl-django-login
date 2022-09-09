@@ -63,3 +63,8 @@ class OIOSaml(Saml2):
             login_params = {}
         login_params['set_nameid_policy'] = False
         return super().login(request, login_params=login_params)
+
+    @classmethod
+    def populate_session(cls, session, saml_claims):
+        super().populate_session(session, saml_claims)
+        session['user_info']['DecodedPrivileges'] = cls.get_privileges(saml_claims)
