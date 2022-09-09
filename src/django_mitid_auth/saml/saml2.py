@@ -31,8 +31,10 @@ class Saml2(LoginProvider):
 
     cached_metadata = None
 
-    @staticmethod
-    def get_client():
+    saml_settings = settings.SAML
+
+    @classmethod
+    def get_client(cls):
         # This is not pretty, but we need to save the client's state between requests,
         # and it will not be pickled as a whole,
         # so extract the important bits and save/restore them
@@ -41,8 +43,9 @@ class Saml2(LoginProvider):
         client_identity = cache.get('client_identity_cache') or {}
         identity_cache = Cache()
         identity_cache._db = client_identity
+        print(cls.saml_settings)
         client = Saml2Client(
-            config=Config().load(settings.SAML),
+            config=Config().load(cls.saml_settings),
             identity_cache=identity_cache,
             state_cache=client_state
         )
@@ -59,23 +62,15 @@ class Saml2(LoginProvider):
         """Kick off a SAML login request."""
         client = cls.get_client()
         saml_session_id, authrequest_data = client.prepare_for_authenticate(
-            entityid=settings.SAML['idp_entity_id'],
+            entityid=cls.saml_settings['idp_entity_id'],
             attribute_consuming_service_index='1',
-            sigalg=settings.SAML['service']['sp']['signing_algorithm'],
+            sigalg=cls.saml_settings['service']['sp']['signing_algorithm'],
             sign_prepare=False,
             sign=True,
         )
         request.session['AuthNRequestID'] = saml_session_id
         cls.save_client(client)
         return HttpResponse(status=authrequest_data['status'], headers=authrequest_data['headers'])
-
-    @classmethod
-    def convert_saml_claims(cls, saml_claims):
-        return {
-            key: saml_claims[claimKey][0]
-            for key, claimKey in cls.claims_map.items()
-            if claimKey in saml_claims
-        }
 
     @classmethod
     def clear_session(cls, session):
@@ -153,13 +148,13 @@ class Saml2(LoginProvider):
     def logout(cls, request):
         """Kick off a SAML logout request."""
         client = cls.get_client()
-        idp_entity_id = settings.SAML['idp_entity_id']
+        idp_entity_id = cls.saml_settings['idp_entity_id']
 
         responses = client.global_logout(
             name_id_from_string(
                 request.session['saml']['name_id']
             ),
-            sign_alg=settings.SAML['service']['sp']['signing_algorithm'],
+            sign_alg=cls.saml_settings['service']['sp']['signing_algorithm'],
             sign=True,
         )
         logoutrequest_data = responses[idp_entity_id][1]
@@ -192,7 +187,7 @@ class Saml2(LoginProvider):
         if cls.cached_metadata is None:
             """Render the metadata of this service."""
 
-            cnf = Config().load(settings.SAML)
+            cnf = Config().load(cls.saml_settings)
             eid = entity_descriptor(cnf)
 
             cls._set_metadata_encryption_method(eid.spsso_descriptor.key_descriptor)
