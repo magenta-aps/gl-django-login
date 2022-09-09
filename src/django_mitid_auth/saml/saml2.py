@@ -29,9 +29,12 @@ class Saml2(LoginProvider):
         'PersonName': 'http://schemas.microsoft.com/identity/claims/displayname',
     }
 
+    cached_metadata = None
+
     @staticmethod
     def get_client():
-        # This is not pretty, but we need to save the client's state between requests, and it will not be pickled as a whole,
+        # This is not pretty, but we need to save the client's state between requests,
+        # and it will not be pickled as a whole,
         # so extract the important bits and save/restore them
         cache = caches['saml']
         client_state = cache.get('client_state_cache') or {}
@@ -58,7 +61,6 @@ class Saml2(LoginProvider):
         saml_session_id, authrequest_data = client.prepare_for_authenticate(
             entityid=settings.SAML['idp_entity_id'],
             attribute_consuming_service_index='1',
-            relay_state="https://test.akap.sullissivik.gl/",
             sigalg=settings.SAML['service']['sp']['signing_algorithm'],
             sign_prepare=False,
             sign=True,
@@ -156,9 +158,10 @@ class Saml2(LoginProvider):
         responses = client.global_logout(
             name_id_from_string(
                 request.session['saml']['name_id']
-            )
+            ),
+            sign_alg=settings.SAML['service']['sp']['signing_algorithm'],
+            sign=True,
         )
-
         logoutrequest_data = responses[idp_entity_id][1]
         cls.save_client(client)
         return HttpResponse(status=logoutrequest_data['status'], headers=logoutrequest_data['headers'])
@@ -186,18 +189,20 @@ class Saml2(LoginProvider):
 
     @classmethod
     def metadata(cls, request):
-        """Render the metadata of this service."""
+        if cls.cached_metadata is None:
+            """Render the metadata of this service."""
 
-        cnf = Config().load(settings.SAML)
-        eid = entity_descriptor(cnf)
+            cnf = Config().load(settings.SAML)
+            eid = entity_descriptor(cnf)
 
-        # cls._set_metadata_encryption_method(eid.spsso_descriptor.key_descriptor)
+            cls._set_metadata_encryption_method(eid.spsso_descriptor.key_descriptor)
 
-        valid_instance(eid)
-        xmldoc = None
-        nspair = {"xs": "http://www.w3.org/2001/XMLSchema"}
-        xmldoc = metadata_tostring_fix(eid, nspair, xmldoc)
-        return HttpResponse(content=xmldoc.decode("utf-8"), content_type='text/xml')
+            valid_instance(eid)
+            xmldoc = None
+            nspair = {"xs": "http://www.w3.org/2001/XMLSchema"}
+            xmldoc = metadata_tostring_fix(eid, nspair, xmldoc)
+            cls.cached_metadata = xmldoc.decode("utf-8")
+        return HttpResponse(content=cls._metadata, content_type='text/xml')
 
     @staticmethod
     def _set_metadata_encryption_method(key_descriptors):
