@@ -31,7 +31,9 @@ class Saml2(LoginProvider):
 
     cached_metadata = None
 
-    saml_settings = settings.SAML
+    @classmethod
+    def saml_settings(cls):
+        return settings.SAML
 
     @classmethod
     def get_client(cls):
@@ -44,7 +46,7 @@ class Saml2(LoginProvider):
         identity_cache = Cache()
         identity_cache._db = client_identity
         client = Saml2Client(
-            config=Config().load(cls.saml_settings),
+            config=Config().load(cls.saml_settings()),
             identity_cache=identity_cache,
             state_cache=client_state
         )
@@ -60,10 +62,11 @@ class Saml2(LoginProvider):
     def login(cls, request, auth_params=None, login_params=None):
         """Kick off a SAML login request."""
         client = cls.get_client()
+        saml_settings = cls.saml_settings()
         saml_session_id, authrequest_data = client.prepare_for_authenticate(
-            entityid=cls.saml_settings['idp_entity_id'],
+            entityid=saml_settings['idp_entity_id'],
             attribute_consuming_service_index='1',
-            sigalg=cls.saml_settings['service']['sp']['signing_algorithm'],
+            sigalg=saml_settings['service']['sp']['signing_algorithm'],
             sign_prepare=False,
             sign=True,
         )
@@ -147,13 +150,14 @@ class Saml2(LoginProvider):
     def logout(cls, request):
         """Kick off a SAML logout request."""
         client = cls.get_client()
-        idp_entity_id = cls.saml_settings['idp_entity_id']
+        saml_settings = cls.saml_settings()
+        idp_entity_id = saml_settings['idp_entity_id']
 
         responses = client.global_logout(
             name_id_from_string(
                 request.session['saml']['name_id']
             ),
-            sign_alg=cls.saml_settings['service']['sp']['signing_algorithm'],
+            sign_alg=saml_settings['service']['sp']['signing_algorithm'],
             sign=True,
         )
         logoutrequest_data = responses[idp_entity_id][1]
@@ -186,7 +190,7 @@ class Saml2(LoginProvider):
         if cls.cached_metadata is None:
             """Render the metadata of this service."""
 
-            cnf = Config().load(cls.saml_settings)
+            cnf = Config().load(cls.saml_settings())
             eid = entity_descriptor(cnf)
 
             cls._set_metadata_encryption_method(eid.spsso_descriptor.key_descriptor)
