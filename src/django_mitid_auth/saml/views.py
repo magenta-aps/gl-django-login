@@ -6,7 +6,6 @@ from django_mitid_auth.saml.saml2 import Saml2
 
 class MetadataView(View):
     def get(self, request):
-        print("metadataview")
         provider = login_provider_class()
         if issubclass(provider, Saml2):
             return provider.metadata(request)
