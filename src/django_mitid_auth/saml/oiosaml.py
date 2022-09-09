@@ -9,8 +9,13 @@ from xmltodict import parse as xml_to_dict
 
 class OIOSaml(Saml2):
 
-    saml_settings = copy.deepcopy(Saml2.saml_settings)
-    saml_settings["attribute_map_dir"] = os.path.dirname(django_mitid_auth.saml.oiosaml_attributemaps.attributemap.__file__)
+    @classmethod
+    def saml_settings(cls):
+        saml_settings = copy.deepcopy(super().saml_settings())
+        saml_settings["attribute_map_dir"] = os.path.dirname(
+            django_mitid_auth.saml.oiosaml_attributemaps.attributemap.__file__
+        )
+        return saml_settings
 
     @staticmethod
     def get_privileges(saml_claims):
