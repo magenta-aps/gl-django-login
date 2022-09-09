@@ -1,0 +1,22 @@
+MAP = {
+    "identifier": "urn:oasis:names:tc:SAML:2.0:attrname-format:uri",
+    "to": {
+        'SpecVer': 'https://data.gov.dk/model/core/specVersion',
+        'BootstrapToken': 'https://data.gov.dk/model/core/eid/bootstrapToken',
+        'Privilege': 'https://data.gov.dk/model/core/eid/privilegesIntermediate',
+        'LevelOfAssurance': 'https://data.gov.dk/concept/core/nsis/loa',
+        'IdentityAssuranceLevel': 'https://data.gov.dk/concept/core/nsis/ial',
+        'AuthenticationAssuranceLevel': 'https://data.gov.dk/concept/core/nsis/aal',
+        'Fullname': 'https://data.gov.dk/model/core/eid/fullName',
+        'Firstname': 'https://data.gov.dk/model/core/eid/firstName',
+        'Lastname': 'https://data.gov.dk/model/core/eid/lastName',
+        'Alias': 'https://data.gov.dk/model/core/eid/alias',
+        'Email': 'https://data.gov.dk/model/core/eid/email',
+        'Age': 'https://data.gov.dk/model/core/eid/age',
+        'CprUUID': 'https://data.gov.dk/model/core/eid/cprUuid',
+        'CVR': 'https://data.gov.dk/model/core/eid/professional/cvr',
+        'CPR': 'https://data.gov.dk/model/core/eid/cprNumber',
+        'PersonName': 'https://data.gov.dk/model/core/eid/fullName',
+        'OrganizationName': 'https://data.gov.dk/model/core/eid/professional/orgName',
+    },
+}
