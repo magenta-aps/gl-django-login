@@ -1,3 +1,4 @@
+import base64
 import logging
 from django.conf import settings
 from django.contrib import auth
@@ -13,7 +14,6 @@ from saml2.saml import name_id_from_string, NameID
 from saml2.validate import valid_instance
 from saml2 import md
 from saml2 import SamlBase
-from saml2 import xmlenc
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,7 @@ class Saml2(LoginProvider):
         saml_session_id, authrequest_data = client.prepare_for_authenticate(
             entityid=settings.SAML['idp_entity_id'],
             attribute_consuming_service_index='1',
-            relay_state="https://test.akap.sullissivik.gl:8000/",
+            relay_state="https://test.akap.sullissivik.gl/",
             sigalg=settings.SAML['service']['sp']['signing_algorithm'],
             sign_prepare=False,
             sign=True,
@@ -66,22 +66,6 @@ class Saml2(LoginProvider):
         request.session['AuthNRequestID'] = saml_session_id
         cls.save_client(client)
         return HttpResponse(status=authrequest_data['status'], headers=authrequest_data['headers'])
-        """
-        if auth_params is None:
-            auth_params = {}
-        if login_params is None:
-            login_params = {}
-        req = Saml2._prepare_django_request(request)
-        saml_auth = OneLogin_Saml2_Auth(req, old_settings=cls.onelogin_settings, **auth_params)
-        if 'back' in request.GET:
-            redirect_to = OneLogin_Saml2_Utils.get_self_url(req) + request.GET['back']
-        else:
-            redirect_to = OneLogin_Saml2_Utils.get_self_url(req) + cls.saml_settings['login_redirect']
-        url = saml_auth.login(redirect_to, **login_params)
-        logger.info(saml_auth.get_last_request_xml())
-        request.session['AuthNRequestID'] = saml_auth.get_last_request_id()
-        return HttpResponseRedirect(url)
-        """
 
     @classmethod
     def convert_saml_claims(cls, saml_claims):
@@ -127,9 +111,13 @@ class Saml2(LoginProvider):
         """Handle an AuthenticationResponse from the IdP."""
         client = cls.get_client()
 
+        samlresponse = request.POST['SAMLResponse']
+
+        samlresponse = cls.workaround_replace_digest(samlresponse)
+
         # authn_response is of type saml2.response.AuthnResponse
         authn_response = client.parse_authn_request_response(
-            request.POST['SAMLResponse'],
+            samlresponse,
             'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
         )
 
@@ -146,46 +134,19 @@ class Saml2(LoginProvider):
         }
         cls.save_client(client)
         return HttpResponseRedirect(success_url)
-        """
-        if request.method != 'POST':
-            return HttpResponse('Method not allowed.', status=405)
-        try:
-            req = cls._prepare_django_request(request)
-            saml_auth = OneLogin_Saml2_Auth(req, old_settings=cls.onelogin_settings)
 
-            request_id = request.session.get('AuthNRequestID', None)
-            saml_auth.process_response(request_id=request_id)
 
-            errors = saml_auth.get_errors()
-            saml_claims = cls.convert_saml_claims(saml_auth.get_attributes())  # empty dict if there are errors
-
-            cls.log_login(request, saml_auth, saml_claims)
-            if not errors:
-                request.session['saml'] = {
-                    'nameId': saml_auth.get_nameid(),
-                    'nameIdFormat': saml_auth.get_nameid_format(),
-                    'nameIdNameQualifier': saml_auth.get_nameid_nq(),
-                    'nameIdSPNameQualifier': saml_auth.get_nameid_spnq(),
-                    'sessionIndex': saml_auth.get_session_index(),
-                }
-                request.session['user_info'] = saml_claims
-                request.session['cvr'] = request.session['user_info'].get('CVR')
-
-                # This data is used during Single Log Out
-                if 'RelayState' in req['post_data'] \
-                        and OneLogin_Saml2_Utils.get_self_url(req) != req['post_data']['RelayState']:
-                    url = saml_auth.redirect_to(req['post_data']['RelayState'])
-                    return HttpResponseRedirect(url)
-                else:
-                    return HttpResponseRedirect(success_url)
-            logger.exception(saml_auth.get_last_error_reason())
-            return HttpResponse(content="Invalid Response", status=400)
-        except PermissionDenied:
-            raise
-        except Exception as e:
-            logger.exception(e)
-            return HttpResponse(content="Invalid Response", status=400)
-        """
+    @staticmethod
+    def workaround_replace_digest(samlresponse):
+        # new_method = ''
+        new_method = '<ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />'
+        samlresponse = base64.b64decode(samlresponse).decode("utf-8")
+        samlresponse = samlresponse.replace(
+            '<ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256" />',
+            new_method
+        )
+        samlresponse = base64.b64encode(samlresponse.encode("utf-8"))
+        return samlresponse
 
     @classmethod
     def logout(cls, request):
@@ -202,24 +163,7 @@ class Saml2(LoginProvider):
         logoutrequest_data = responses[idp_entity_id][1]
         cls.save_client(client)
         return HttpResponse(status=logoutrequest_data['status'], headers=logoutrequest_data['headers'])
-        """
-        req = cls._prepare_django_request(request)
-        saml_auth = OneLogin_Saml2_Auth(req, old_settings=cls.onelogin_settings)
-        (name_id, session_index, name_id_format, name_id_nq, name_id_spnq) = (None, None, None, None, None)
-        saml_session = request.session.get('saml', None)
-        if saml_session:
-            name_id = saml_session.get('nameId', None)
-            session_index = saml_session.get('sessionIndex', None)
-            name_id_format = saml_session.get('nameIdFormat', None)
-            name_id_nq = saml_session.get('nameIdNameQualifier', None)
-            name_id_spnq = saml_session.get('nameIdSPNameQualifier', None)
-        url = saml_auth.logout(
-            name_id=name_id, session_index=session_index, nq=name_id_nq, name_id_format=name_id_format, spnq=name_id_spnq,
-            return_to=OneLogin_Saml2_Utils.get_self_url(req) + cls.saml_settings['logout_redirect']
-        )
-        request.session['LogoutRequestID'] = saml_auth.get_last_request_id()
-        return HttpResponseRedirect(url)
-        """
+
 
     @classmethod
     def handle_logout_callback(cls, request):
@@ -242,32 +186,6 @@ class Saml2(LoginProvider):
             redirect_to = settings.LOGOUT_REDIRECT_URL
             return HttpResponseRedirect(redirect_to)
 
-        """
-        if request.method != 'GET':
-            return HttpResponse('Method not allowed.', status=405)
-        req = cls._prepare_django_request(request)
-        saml_auth = OneLogin_Saml2_Auth(req, old_settings=cls.onelogin_settings)
-        request_id = request.session.get('LogoutRequestID', None)
-        try:
-            saml_claims = request.session.get('user_info')
-            url = saml_auth.process_slo(request_id=request_id, delete_session_cb=lambda: request.session.flush())
-            errors = saml_auth.get_errors()
-            cls.log_logout(request, saml_auth, saml_claims)
-            if not errors:
-                auth.logout(request)
-                cls.clear_session(request.session)
-                redirect_to = url or cls.saml_settings['logout_redirect']
-                return HttpResponseRedirect(redirect_to)
-            else:
-                logger.exception(saml_auth.get_last_error_reason())
-                return HttpResponse("Invalid request", status=400)
-        except UnicodeDecodeError:
-            # Happens when someone messes with the response in the URL.  No need to log an exception.
-            return HttpResponse("Invalid request - Unable to decode response", status=400)
-        except Exception as e:
-            logger.exception(e)
-            return HttpResponse("Invalid request", status=400)
-        """
 
     @classmethod
     def metadata(cls, request):
@@ -276,22 +194,13 @@ class Saml2(LoginProvider):
         cnf = Config().load(settings.SAML)
         eid = entity_descriptor(cnf)
 
-        cls._set_metadata_encryption_method(eid.spsso_descriptor.key_descriptor)
+        # cls._set_metadata_encryption_method(eid.spsso_descriptor.key_descriptor)
 
         valid_instance(eid)
         xmldoc = None
         nspair = {"xs": "http://www.w3.org/2001/XMLSchema"}
         xmldoc = metadata_tostring_fix(eid, nspair, xmldoc)
         return HttpResponse(content=xmldoc.decode("utf-8"), content_type='text/xml')
-        """
-        metadata_dict = cls.onelogin_settings.get_sp_metadata()
-        errors = cls.onelogin_settings.validate_metadata(metadata_dict)
-        if len(errors) == 0:
-            resp = HttpResponse(content=metadata_dict, content_type='text/xml')
-        else:
-            resp = HttpResponseServerError(content=', '.join(errors))
-        return resp
-        """
 
     @staticmethod
     def _set_metadata_encryption_method(key_descriptors):
@@ -300,12 +209,12 @@ class Saml2(LoginProvider):
         for key_descriptor in key_descriptors:
             if key_descriptor.use == 'encryption':
                 enc1 = md.EncryptionMethod()
-                enc1.algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"
+                enc1.algorithm = "http://www.w3.org/2001/04/xmlenc#aes256-cbc"
                 enc2 = EncryptionMethod()
-                enc2.algorithm="http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p"
+                enc2.algorithm = "http://www.w3.org/2001/04/xmlenc#rsa-oaep-mgf1p"
                 dig = DigestMethod()
                 dig.algorithm = "http://www.w3.org/2000/09/xmldsig#sha1"
-                enc2.digest_method = [dig]
+                enc2.digest_method = dig
                 key_descriptor.encryption_method = [enc1, enc2]
 
     """
