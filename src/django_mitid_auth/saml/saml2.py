@@ -43,7 +43,6 @@ class Saml2(LoginProvider):
         client_identity = cache.get('client_identity_cache') or {}
         identity_cache = Cache()
         identity_cache._db = client_identity
-        print(cls.saml_settings)
         client = Saml2Client(
             config=Config().load(cls.saml_settings),
             identity_cache=identity_cache,
