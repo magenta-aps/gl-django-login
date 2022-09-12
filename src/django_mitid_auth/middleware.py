@@ -1,10 +1,10 @@
 from django.conf import settings
+from django.http import HttpResponse
 from django.shortcuts import redirect
+from django.template.loader import get_template
 from django.urls import reverse
 from django.utils.http import urlencode, urlquote
 from django_mitid_auth import login_provider_class
-from django.template.loader import get_template
-from django.http import HttpResponse
 
 
 class LoginManager:

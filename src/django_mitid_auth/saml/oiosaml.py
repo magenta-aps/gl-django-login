@@ -1,8 +1,8 @@
 import base64
-import django_mitid_auth.saml.oiosaml_attributemaps.attributemap
-import os
 import copy
+import os
 
+import django_mitid_auth.saml.oiosaml_attributemaps.attributemap
 from django_mitid_auth.saml.saml2 import Saml2
 from xmltodict import parse as xml_to_dict
 

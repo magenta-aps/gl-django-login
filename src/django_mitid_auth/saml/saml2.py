@@ -1,19 +1,20 @@
 import base64
 import logging
+
 from django.conf import settings
 from django.contrib import auth
 from django.core.cache import caches
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
 from django_mitid_auth.loginprovider import LoginProvider
+from saml2 import SamlBase
+from saml2 import md
 from saml2.cache import Cache
 from saml2.client import Saml2Client
 from saml2.config import Config
 from saml2.metadata import entity_descriptor, metadata_tostring_fix
 from saml2.saml import name_id_from_string, NameID
 from saml2.validate import valid_instance
-from saml2 import md
-from saml2 import SamlBase
 
 logger = logging.getLogger(__name__)
 
@@ -200,7 +201,7 @@ class Saml2(LoginProvider):
             nspair = {"xs": "http://www.w3.org/2001/XMLSchema"}
             xmldoc = metadata_tostring_fix(eid, nspair, xmldoc)
             cls.cached_metadata = xmldoc.decode("utf-8")
-        return HttpResponse(content=cls._metadata, content_type='text/xml')
+        return HttpResponse(content=cls.cached_metadata, content_type='text/xml')
 
     @staticmethod
     def _set_metadata_encryption_method(key_descriptors):
