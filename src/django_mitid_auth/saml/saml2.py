@@ -153,17 +153,23 @@ class Saml2(LoginProvider):
         client = cls.get_client()
         saml_settings = cls.saml_settings()
         idp_entity_id = saml_settings['idp_entity_id']
-
-        responses = client.global_logout(
-            name_id_from_string(
-                request.session['saml']['name_id']
-            ),
-            sign_alg=saml_settings['service']['sp']['signing_algorithm'],
-            sign=True,
-        )
-        logoutrequest_data = responses[idp_entity_id][1]
-        cls.save_client(client)
-        return HttpResponse(status=logoutrequest_data['status'], headers=logoutrequest_data['headers'])
+        if 'saml' in request.session:
+            responses = client.global_logout(
+                name_id_from_string(
+                    request.session['saml']['name_id']
+                ),
+                sign_alg=saml_settings['service']['sp']['signing_algorithm'],
+                sign=True,
+            )
+            logoutrequest_data = responses[idp_entity_id][1]
+            cls.save_client(client)
+            return HttpResponse(status=logoutrequest_data['status'], headers=logoutrequest_data['headers'])
+        else:
+            auth.logout(request)
+            cls.clear_session(request.session)
+            request.session.flush()
+            redirect_to = settings.LOGOUT_REDIRECT_URL
+            return HttpResponseRedirect(redirect_to)
 
     @classmethod
     def handle_logout_callback(cls, request):
