@@ -235,7 +235,7 @@ class DigestMethodType(SamlBase):
 
 class DigestMethod(DigestMethodType):
     c_tag = 'DigestMethod'
-    c_namespace = md.NAMESPACE
+    c_namespace = "http://www.w3.org/2000/09/xmldsig#"
     c_children = DigestMethodType.c_children.copy()
     c_attributes = DigestMethodType.c_attributes.copy()
     c_child_order = DigestMethodType.c_child_order[:]
@@ -245,7 +245,7 @@ class DigestMethod(DigestMethodType):
 class EncryptionMethod(md.EncryptionMethod):
     c_children = {
         **md.EncryptionMethod.c_children.copy(),
-        '{http://www.w3.org/2001/04/xmlenc#}DigestMethod': ('digest_method', DigestMethod)
+        '{http://www.w3.org/2000/09/xmldsig#}DigestMethod': ('digest_method', DigestMethod)
     }
     c_child_order = md.EncryptionMethod.c_child_order[:]
     c_child_order.append('digest_method')
