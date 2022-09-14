@@ -3,6 +3,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import View, TemplateView
+from django.contrib.auth import REDIRECT_FIELD_NAME
 
 from django_mitid_auth import login_provider_class
 from django_mitid_auth.exceptions import LoginException
@@ -10,7 +11,7 @@ from django_mitid_auth.exceptions import LoginException
 
 class LoginView(View):
     def get(self, request):
-        request.session['backpage'] = request.GET.get('back')
+        request.session['backpage'] = request.GET.get('back') or request.GET.get(REDIRECT_FIELD_NAME)
         provider = login_provider_class()
         request.session['login_method'] = provider.__class__.__name__
         return provider.login(request)
@@ -30,7 +31,7 @@ class LoginCallbackView(TemplateView):
         try:
             return login_provider_class().handle_login_callback(
                 request=request,
-                success_url=request.session.get('backpage', settings.LOGIN_REDIRECT_URL)
+                success_url=request.session.get('backpage') or settings.LOGIN_REDIRECT_URL
             )
         except LoginException as e:
             return self.render_to_response({'errors': e.errordict})
