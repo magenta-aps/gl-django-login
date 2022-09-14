@@ -15,6 +15,7 @@ from saml2.config import Config
 from saml2.metadata import entity_descriptor, metadata_tostring_fix
 from saml2.saml import name_id_from_string, NameID
 from saml2.validate import valid_instance
+from xmltodict import parse as xml_to_dict
 
 logger = logging.getLogger(__name__)
 
@@ -143,7 +144,7 @@ class Saml2(LoginProvider):
             authn_response.name_id,
             request.session['saml']["ava"].get('cpr'),
             request.session['saml']["ava"].get('cvr'),
-            [base64.b64decode(p).decode("utf-8") for p in request.session['saml']["ava"]["privilege"]],
+            [xml_to_dict(base64.b64decode(p).decode("utf-8")) for p in request.session['saml']["ava"]["privilege"] if p],
             request.session.session_key,
         )
         # logger.info()
