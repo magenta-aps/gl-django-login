@@ -132,7 +132,6 @@ class Saml2(LoginProvider):
             authn_response.session_info().items()
         }
         cls.save_client(client)
-        print(f"redirect to {success_url}")
         return HttpResponseRedirect(success_url)
 
     @staticmethod
