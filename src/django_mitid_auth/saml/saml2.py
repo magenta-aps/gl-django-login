@@ -132,15 +132,18 @@ class Saml2(LoginProvider):
             authn_response.session_info().items()
         }
         cls.save_client(client)
-        print(authn_response)
         logger.info(
-            "AuthnResponse id: %s, Sikringsniveu: %s, InResponseTo: %s, SubjectNameId: %s, CPR: %s, CVR: %s, DjangoSessionId: %s",
-            authn_response.request_id,
-            None,
+            "AuthnResponse id: %s, Sikringsniveau: %s, IdentitetSikringsniveau: %s, AuthentikeringsSikringsniveau: %s, "
+            "InResponseTo: %s, SubjectNameId: %s, CPR: %s, CVR: %s, Privilegier: %s, DjangoSessionId: %s",
+            authn_response.id(),
+            request.session['saml']["ava"].get('levelofassurance'),
+            request.session['saml']["ava"].get('identityassurancelevel'),
+            request.session['saml']["ava"].get('authenticationassurancelevel'),
             authn_response.in_response_to,
             authn_response.name_id,
-            None,
-            None,
+            request.session['saml']["ava"].get('cpr'),
+            request.session['saml']["ava"].get('cvr'),
+            [base64.b64decode(p).decode("utf-8") for p in request.session['saml']["ava"]["privilege"]],
             request.session.session_key,
         )
         # logger.info()
