@@ -133,8 +133,15 @@ class Saml2(LoginProvider):
         }
         cls.save_client(client)
         print(authn_response)
-        print(
-            authn_response.session_info().items()
+        logger.info(
+            "AuthnResponse id: %s, Sikringsniveu: %s, InResponseTo: %s, SubjectNameId: %s, CPR: %s, CVR: %s, DjangoSessionId: %s",
+            authn_response.request_id,
+            None,
+            authn_response.in_response_to,
+            authn_response.name_id,
+            None,
+            None,
+            request.session.session_key,
         )
         # logger.info()
         return HttpResponseRedirect(success_url)
