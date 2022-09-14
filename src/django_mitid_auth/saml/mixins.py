@@ -9,7 +9,6 @@ class MitIdLOAMixin:
     LEVEL_SUBSTANTIAL = 'Substantial'
     LEVEL_HIGH = 'High'
     required_level_of_assurance = LEVEL_LOW
-    error_template = "django_mitid_auth/insufficient_permissions.html"
 
     def dispatch(self, request, *args, **kwargs):
         if OIOSaml.enabled():
