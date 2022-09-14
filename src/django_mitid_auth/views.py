@@ -28,6 +28,8 @@ class LoginCallbackView(TemplateView):
 
     def handle(self, request):
         try:
+            print(dict(request.session))
+            print(settings.LOGIN_REDIRECT_URL)
             return login_provider_class().handle_login_callback(
                 request=request,
                 success_url=request.session.get('backpage', settings.LOGIN_REDIRECT_URL)
