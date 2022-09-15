@@ -132,9 +132,9 @@ class Saml2(LoginProvider):
             if caches['saml'].get("message_id__"+authn_response.in_response_to):
                 caches['saml'].set("message_id__"+authn_response.in_response_to, None)
             else:
-                return redirect(settings.getattr('LOGIN_REPEATED_URL') or reverse(f"{namespace}:login-repeat"))
+                return redirect(getattr(settings, 'LOGIN_REPEATED_URL') or reverse(f"{namespace}:login-repeat"))
         except ResponseLifetimeExceed:
-            return redirect(settings.getattr('LOGIN_TIMEOUT_URL') or reverse(f"{namespace}:login-timeout"))
+            return redirect(getattr(settings, 'LOGIN_TIMEOUT_URL') or reverse(f"{namespace}:login-timeout"))
 
         request.session['user_info'] = {
             key: values[0] if type(values) == list and len(values) == 1 else values
@@ -167,7 +167,7 @@ class Saml2(LoginProvider):
         if request.session['user_info'].get('cpr') or request.session['user_info'].get('cvr'):
             return HttpResponseRedirect(success_url)
         else:
-            return redirect(settings.getattr('LOGIN_NO_CPRCVR_URL') or reverse(f"{namespace}:login-no-cprcvr"))
+            return redirect(getattr(settings, 'LOGIN_NO_CPRCVR_URL') or reverse(f"{namespace}:login-no-cprcvr"))
 
     @staticmethod
     def workaround_replace_digest(samlresponse):
