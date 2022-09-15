@@ -5,6 +5,7 @@ from django.conf import settings
 from django.contrib import auth
 from django.core.cache import caches
 from django.http import HttpResponse, HttpResponseRedirect
+from django.template.response import TemplateResponse
 from django.urls import reverse_lazy
 from django_mitid_auth.loginprovider import LoginProvider
 from saml2 import SamlBase
@@ -61,16 +62,19 @@ class Saml2(LoginProvider):
         cache.set('client_identity_cache', client.users.cache._db)
 
     @classmethod
-    def login(cls, request, auth_params=None, login_params=None):
+    def login(cls, request, auth_params=None):
         """Kick off a SAML login request."""
         client = cls.get_client()
         saml_settings = cls.saml_settings()
+        if auth_params is None:
+            auth_params = {}
         saml_session_id, authrequest_data = client.prepare_for_authenticate(
             entityid=saml_settings['idp_entity_id'],
             attribute_consuming_service_index='1',
             sigalg=saml_settings['service']['sp']['signing_algorithm'],
             sign_prepare=False,
             sign=True,
+            **auth_params
         )
         request.session['AuthNRequestID'] = saml_session_id
         cls.save_client(client)
@@ -144,11 +148,15 @@ class Saml2(LoginProvider):
             authn_response.name_id,
             request.session['saml']["ava"].get('cpr'),
             request.session['saml']["ava"].get('cvr'),
-            [xml_to_dict(base64.b64decode(p).decode("utf-8")) for p in request.session['saml']["ava"]["privilege"] if p],
+            [xml_to_dict(base64.b64decode(p).decode("utf-8")) for p in request.session['saml']["ava"]["privilege"] if p]
+            if "privilege" in request.session['saml']["ava"]
+            else None,
             request.session.session_key,
         )
-        # logger.info()
-        return HttpResponseRedirect(success_url)
+        if request.session['user_info'].get('cpr') or request.session['user_info'].get('cvr'):
+            return HttpResponseRedirect(success_url)
+        else:
+            return TemplateResponse(request, settings.LOGIN_NO_CPRCVR_TEMPLATE or "django_mitid_auth/no_cprcvr.html")
 
     @staticmethod
     def workaround_replace_digest(samlresponse):
@@ -169,6 +177,20 @@ class Saml2(LoginProvider):
         saml_settings = cls.saml_settings()
         idp_entity_id = saml_settings['idp_entity_id']
         if 'saml' in request.session:
+            logger.info(
+                "Sikringsniveau: %s, IdentitetSikringsniveau: %s, AuthentikeringsSikringsniveau: %s, "
+                "SubjectNameId: %s, CPR: %s, CVR: %s, Privilegier: %s, DjangoSessionId: %s",
+                request.session['saml']["ava"].get('levelofassurance'),
+                request.session['saml']["ava"].get('identityassurancelevel'),
+                request.session['saml']["ava"].get('authenticationassurancelevel'),
+                request.session['saml'].get('name_id'),
+                request.session['saml']["ava"].get('cpr'),
+                request.session['saml']["ava"].get('cvr'),
+                [xml_to_dict(base64.b64decode(p).decode("utf-8")) for p in request.session['saml']["ava"]["privilege"] if p]
+                if "privilege" in request.session['saml']["ava"]
+                else None,
+                request.session.session_key,
+            )
             try:
                 responses = client.global_logout(
                     name_id_from_string(
