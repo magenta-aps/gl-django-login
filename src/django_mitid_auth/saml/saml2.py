@@ -5,8 +5,9 @@ from django.conf import settings
 from django.contrib import auth
 from django.core.cache import caches
 from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import redirect
 from django.template.response import TemplateResponse
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django_mitid_auth.loginprovider import LoginProvider
 from saml2 import SamlBase
 from saml2 import md
@@ -120,6 +121,7 @@ class Saml2(LoginProvider):
 
         samlresponse = request.POST['SAMLResponse']
         samlresponse = cls.workaround_replace_digest(samlresponse)
+        namespace = settings.LOGIN_NAMESPACE
 
         try:
             # authn_response is of type saml2.response.AuthnResponse
@@ -130,9 +132,9 @@ class Saml2(LoginProvider):
             if caches['saml'].get("message_id__"+authn_response.in_response_to):
                 caches['saml'].set("message_id__"+authn_response.in_response_to, None)
             else:
-                return TemplateResponse(request, settings.LOGIN_REPEATED_TEMPLATE or "django_mitid_auth/login_repeated.html", status=403)
+                return redirect(settings.LOGIN_REPEATED_URL or reverse(f"{namespace}:login-repeat"))
         except ResponseLifetimeExceed:
-            return TemplateResponse(request, settings.LOGIN_LIFETIME_EXCEEDED_TEMPLATE or "django_mitid_auth/lifetime_exceeded.html", status=403)
+            return redirect(settings.LOGIN_TIMEOUT_URL or reverse(f"{namespace}:login-timeout"))
 
         request.session['user_info'] = {
             key: values[0] if type(values) == list and len(values) == 1 else values
@@ -165,7 +167,7 @@ class Saml2(LoginProvider):
         if request.session['user_info'].get('cpr') or request.session['user_info'].get('cvr'):
             return HttpResponseRedirect(success_url)
         else:
-            return TemplateResponse(request, settings.LOGIN_NO_CPRCVR_TEMPLATE or "django_mitid_auth/no_cprcvr.html", status=403)
+            return redirect(settings.LOGIN_NO_CPRCVR_URL or reverse(f"{namespace}:login-no-cprcvr"))
 
     @staticmethod
     def workaround_replace_digest(samlresponse):
