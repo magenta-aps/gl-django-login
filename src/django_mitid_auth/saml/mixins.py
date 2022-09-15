@@ -12,7 +12,7 @@ class MitIdLOAMixin:
 
     def dispatch(self, request, *args, **kwargs):
         if OIOSaml.enabled():
-            user_level_of_assurance = request.session['user_info'].get('LevelOfAssurance')
+            user_level_of_assurance = request.session['saml']["ava"].get('levelofassurance')
             if user_level_of_assurance is None \
                     or self.levels.index(user_level_of_assurance) < self.levels.index(self.required_level_of_assurance):
                 return self.permission_denied(request, *args, **kwargs)

@@ -133,8 +133,5 @@ class OIOSaml(Saml2):
         }
 
     @classmethod
-    def login(cls, request, login_params=None):
-        if login_params is None:
-            login_params = {}
-        login_params['set_nameid_policy'] = False
-        return super().login(request, login_params=login_params)
+    def login(cls, request, auth_params=None):
+        return super().login(request, auth_params=auth_params)
