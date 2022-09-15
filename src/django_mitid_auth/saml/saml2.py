@@ -77,7 +77,7 @@ class Saml2(LoginProvider):
             sign=True,
             **auth_params
         )
-        caches['saml'].set("message_id__"+saml_session_id)
+        caches['saml'].set("message_id__"+saml_session_id, True)
         request.session['AuthNRequestID'] = saml_session_id
         cls.save_client(client)
         return HttpResponse(status=authrequest_data['status'], headers=authrequest_data['headers'])
