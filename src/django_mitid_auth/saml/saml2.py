@@ -15,7 +15,7 @@ from saml2.client import Saml2Client
 from saml2.config import Config
 from saml2.metadata import entity_descriptor, metadata_tostring_fix
 from saml2.saml import name_id_from_string, NameID
-from saml2.validate import valid_instance
+from saml2.validate import valid_instance, ResponseLifetimeExceed
 from xmltodict import parse as xml_to_dict
 
 logger = logging.getLogger(__name__)
@@ -68,6 +68,7 @@ class Saml2(LoginProvider):
         saml_settings = cls.saml_settings()
         if auth_params is None:
             auth_params = {}
+
         saml_session_id, authrequest_data = client.prepare_for_authenticate(
             entityid=saml_settings['idp_entity_id'],
             attribute_consuming_service_index='1',
@@ -76,6 +77,7 @@ class Saml2(LoginProvider):
             sign=True,
             **auth_params
         )
+        caches['saml'].set("message_id__"+saml_session_id)
         request.session['AuthNRequestID'] = saml_session_id
         cls.save_client(client)
         return HttpResponse(status=authrequest_data['status'], headers=authrequest_data['headers'])
@@ -119,11 +121,18 @@ class Saml2(LoginProvider):
         samlresponse = request.POST['SAMLResponse']
         samlresponse = cls.workaround_replace_digest(samlresponse)
 
-        # authn_response is of type saml2.response.AuthnResponse
-        authn_response = client.parse_authn_request_response(
-            samlresponse,
-            'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
-        )
+        try:
+            # authn_response is of type saml2.response.AuthnResponse
+            authn_response = client.parse_authn_request_response(
+                samlresponse,
+                'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
+            )
+            if caches['saml'].get("message_id__"+authn_response.in_response_to):
+                caches['saml'].set("message_id__"+authn_response.in_response_to, None)
+            else:
+                return TemplateResponse(request, settings.LOGIN_REPEATED_TEMPLATE or "django_mitid_auth/login_repeated.html", status=403)
+        except ResponseLifetimeExceed:
+            return TemplateResponse(request, settings.LOGIN_LIFETIME_EXCEEDED_TEMPLATE or "django_mitid_auth/lifetime_exceeded.html", status=403)
 
         request.session['user_info'] = {
             key: values[0] if type(values) == list and len(values) == 1 else values
@@ -156,7 +165,7 @@ class Saml2(LoginProvider):
         if request.session['user_info'].get('cpr') or request.session['user_info'].get('cvr'):
             return HttpResponseRedirect(success_url)
         else:
-            return TemplateResponse(request, settings.LOGIN_NO_CPRCVR_TEMPLATE or "django_mitid_auth/no_cprcvr.html")
+            return TemplateResponse(request, settings.LOGIN_NO_CPRCVR_TEMPLATE or "django_mitid_auth/no_cprcvr.html", status=403)
 
     @staticmethod
     def workaround_replace_digest(samlresponse):
