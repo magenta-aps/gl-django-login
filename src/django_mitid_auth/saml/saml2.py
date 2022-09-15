@@ -123,9 +123,6 @@ class Saml2(LoginProvider):
         samlresponse = cls.workaround_replace_digest(samlresponse)
         namespace = settings.LOGIN_NAMESPACE
 
-        print(f"{namespace}:saml:login-repeat")
-        print(reverse(f"{namespace}:saml:login-repeat"))
-
         try:
             # authn_response is of type saml2.response.AuthnResponse
             authn_response = client.parse_authn_request_response(
