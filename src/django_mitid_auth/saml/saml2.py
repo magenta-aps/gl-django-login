@@ -1,5 +1,6 @@
 import base64
 import logging
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib import auth
@@ -8,15 +9,19 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse_lazy, reverse
 from django_mitid_auth.loginprovider import LoginProvider
-from saml2 import SamlBase
+from saml2 import SamlBase, BINDING_SOAP, BINDING_HTTP_POST, BINDING_HTTP_REDIRECT
 from saml2 import md
 from saml2.cache import Cache
 from saml2.client import Saml2Client
 from saml2.config import Config
 from saml2.metadata import entity_descriptor, metadata_tostring_fix
+from saml2.s_utils import decode_base64_and_inflate, deflate_and_base64_encode, success_status_factory, \
+    status_message_factory
 from saml2.saml import name_id_from_string, NameID
+from saml2.samlp import STATUS_REQUEST_DENIED, STATUS_UNKNOWN_PRINCIPAL
 from saml2.validate import valid_instance, ResponseLifetimeExceed
 from xmltodict import parse as xml_to_dict
+from urllib import parse
 
 logger = logging.getLogger(__name__)
 
@@ -244,23 +249,60 @@ class Saml2(LoginProvider):
 
         if 'SAMLRequest' in request.GET:
             saml_settings = cls.saml_settings()
-            print(request.GET)
-            logoutrequest_data = client.handle_logout_request(
+
+            samlrequest = request.GET["SAMLRequest"]
+            samlrequest = decode_base64_and_inflate(samlrequest)
+            print(samlrequest)
+
+            _req = client.parse_logout_request(
+                xmlstr=request.GET['SAMLRequest'],
+                binding='urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
+                relay_state=None,
+                sigalg=request.GET['SigAlg'],
+                signature=request.GET['Signature'],
+            )
+
+            logoutrequest_data = handle_logout_request(
+                client,
                 request.GET['SAMLRequest'],
-                name_id=request.session['saml']['name_id'],
+                name_id=name_id_from_string(request.session['saml']['name_id']),
                 binding='urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
                 sign=True,
                 sign_alg=saml_settings["service"]["sp"]["signing_algorithm"],
-                digest_alg='http://www.w3.org/2000/09/xmldsig#sha1',
+                # digest_alg='http://www.w3.org/2000/09/xmldsig#sha1',
                 sigalg=request.GET['SigAlg'],
                 signature=request.GET['Signature'],
                 relay_state=None,
             )
-            print(logoutrequest_data)
+
+            # Remove \n from signature
+            logoutrequest_data['headers'] = cls.modify_logoutresponse_headers(logoutrequest_data['headers'])
+
             return HttpResponse(
                 status=logoutrequest_data['status'],
                 headers=logoutrequest_data['headers']
             )
+
+    @classmethod
+    def modify_logoutresponse_headers(cls, headers):
+        h = []
+        for headername, headervalue in headers:
+            if headername == "Location":
+                print(f"headervalue: {headervalue}")
+                location_url = parse.urlparse(headervalue)
+                q = parse.parse_qs(location_url.query)
+                samlresponse = q["SAMLResponse"][0]
+                samlresponse = decode_base64_and_inflate(samlresponse).decode("utf-8")
+                # samlresponse = samlresponse.replace("\\n", "")
+                # samlresponse = samlresponse.replace("\n", "")
+                print(f"samlresponse: {samlresponse}")
+                samlresponse = deflate_and_base64_encode(samlresponse.encode("utf-8"))
+                q["SAMLResponse"][0] = samlresponse
+                location = f"{location_url.scheme}://{location_url.netloc}{location_url.path}?{urlencode(q, doseq=True)}"
+                print(f"location: {str(location)}")
+                headervalue = location
+            h.append((headername, headervalue))
+        return h
 
     @classmethod
     def metadata(cls, request):
@@ -318,3 +360,93 @@ class EncryptionMethod(md.EncryptionMethod):
     }
     c_child_order = md.EncryptionMethod.c_child_order[:]
     c_child_order.append('digest_method')
+
+
+
+def handle_logout_request(
+        client,
+        request,
+        name_id,
+        binding,
+        sign=None,
+        sign_alg=None,
+        digest_alg=None,
+        relay_state=None,
+        sigalg=None,
+        signature=None,
+):
+    """
+    Deal with a LogoutRequest
+
+    :param request: The request as text string
+    :param name_id: The id of the current user
+    :param binding: Which binding the message came in over
+    :param sign: Whether the response will be signed or not
+    :param sign_alg: The signing algorithm for the response
+    :param digest_alg: The digest algorithm for the the response
+    :param relay_state: The relay state of the request
+    :param sigalg: The SigAlg query param of the request
+    :param signature: The Signature query param of the request
+    :return: Keyword arguments which can be used to send the response
+        what's returned follow different patterns for different bindings.
+        If the binding is BINDIND_SOAP, what is returned looks like this::
+
+            {
+                "data": <the SOAP enveloped response>
+                "url": "",
+                'headers': [('content-type', 'application/soap+xml')]
+                'method': "POST
+            }
+    """
+    logger.info("logout request: %s", request)
+
+    _req = client.parse_logout_request(
+        xmlstr=request,
+        binding=binding,
+        relay_state=relay_state,
+        sigalg=sigalg,
+        signature=signature,
+    )
+
+    if _req.message.name_id == name_id:
+        try:
+            if client.local_logout(name_id):
+                status = success_status_factory()
+            else:
+                status = status_message_factory("Server error",
+                                                STATUS_REQUEST_DENIED)
+        except KeyError:
+            status = status_message_factory("Server error",
+                                            STATUS_REQUEST_DENIED)
+    else:
+        status = status_message_factory("Wrong user",
+                                        STATUS_UNKNOWN_PRINCIPAL)
+
+    response_bindings = {
+        BINDING_SOAP: [BINDING_SOAP],
+        BINDING_HTTP_POST: [BINDING_HTTP_POST, BINDING_HTTP_REDIRECT],
+        BINDING_HTTP_REDIRECT: [BINDING_HTTP_REDIRECT, BINDING_HTTP_POST],
+    }.get(binding)
+
+    if sign is None:
+        sign = client.logout_responses_signed
+
+    response = client.create_logout_response(
+        _req.message,
+        bindings=response_bindings,
+        status=status,
+        sign=False,
+        # sign_alg=sign_alg,
+        digest_alg=digest_alg,
+    )
+    rinfo = client.response_args(_req.message, response_bindings)
+
+    return client.apply_binding(
+        rinfo["binding"],
+        response,
+        rinfo["destination"],
+        relay_state,
+        response=True,
+        sign=sign,
+        sigalg=sign_alg,
+    )
