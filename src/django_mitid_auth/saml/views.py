@@ -15,6 +15,7 @@ class MetadataView(View):
 
 class AccessDeniedView(TemplateView):
     status = 403
+
     def render_to_response(self, context, **response_kwargs):
         response_kwargs['status'] = self.status
         return super().render_to_response(context, **response_kwargs)

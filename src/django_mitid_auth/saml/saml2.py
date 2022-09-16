@@ -6,7 +6,6 @@ from django.contrib import auth
 from django.core.cache import caches
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
-from django.template.response import TemplateResponse
 from django.urls import reverse_lazy, reverse
 from django_mitid_auth.loginprovider import LoginProvider
 from saml2 import SamlBase
@@ -226,21 +225,42 @@ class Saml2(LoginProvider):
         """Handle a LogoutResponse from the IdP."""
         client = cls.get_client()
 
-        logout_response = client.parse_logout_request_response(
-            request.GET['SAMLResponse'],
-            'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'
-        )
-        session_id, message, headers, msg = client.handle_logout_response(
-            response=logout_response
-        )
+        if 'SAMLResponse' in request.GET:
+            logout_response = client.parse_logout_request_response(
+                request.GET['SAMLResponse'],
+                'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'
+            )
+            session_id, message, headers, msg = client.handle_logout_response(
+                response=logout_response
+            )
 
-        cls.save_client(client)
-        if message == '200 Ok':
-            auth.logout(request)
-            cls.clear_session(request.session)
-            request.session.flush()
-            redirect_to = settings.LOGOUT_REDIRECT_URL
-            return HttpResponseRedirect(redirect_to)
+            cls.save_client(client)
+            if message == '200 Ok':
+                auth.logout(request)
+                cls.clear_session(request.session)
+                request.session.flush()
+                redirect_to = settings.LOGOUT_REDIRECT_URL
+                return HttpResponseRedirect(redirect_to)
+
+        if 'SAMLRequest' in request.GET:
+            saml_settings = cls.saml_settings()
+            print(request.GET)
+            logoutrequest_data = client.handle_logout_request(
+                request.GET['SAMLRequest'],
+                name_id=request.session['saml']['name_id'],
+                binding='urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
+                sign=True,
+                sign_alg=saml_settings["service"]["sp"]["signing_algorithm"],
+                digest_alg='http://www.w3.org/2000/09/xmldsig#sha1',
+                sigalg=request.GET['SigAlg'],
+                signature=request.GET['Signature'],
+                relay_state=None,
+            )
+            print(logoutrequest_data)
+            return HttpResponse(
+                status=logoutrequest_data['status'],
+                headers=logoutrequest_data['headers']
+            )
 
     @classmethod
     def metadata(cls, request):
