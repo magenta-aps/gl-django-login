@@ -20,7 +20,6 @@ class LoginManager:
         return self.enabled and settings.LOGIN_BYPASS_ENABLED
 
     white_listed_urls = []
-    exceptions = []
 
     def __init__(self, get_response):
         self.white_listed_urls = list(settings.LOGIN_WHITELISTED_URLS)
@@ -50,9 +49,7 @@ class LoginManager:
     def __call__(self, request):
         if request.path not in self.white_listed_urls \
                 and request.path.rstrip('/') not in self.white_listed_urls \
-                and not request.path.startswith(settings.STATIC_URL) \
-                and request.path not in self.exceptions:
-            # When any non-whitelisted page is loaded, check if we are authenticated
+                and not request.path.startswith(settings.STATIC_URL):            # When any non-whitelisted page is loaded, check if we are authenticated
 
             if self.enabled:
                 if self.provider.is_logged_in(request):
@@ -89,7 +86,3 @@ class LoginManager:
     def get_backpage(request):
         backpage = request.GET.get('back', request.session.get('backpage', settings.LOGIN_REDIRECT_URL))
         return backpage
-
-    @staticmethod
-    def set_login_except(exceptions: List[str]):
-        LoginManager.exceptions = exceptions if exceptions else []
