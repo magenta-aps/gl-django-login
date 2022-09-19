@@ -1,6 +1,5 @@
 import base64
 import logging
-from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib import auth
@@ -15,13 +14,12 @@ from saml2.cache import Cache
 from saml2.client import Saml2Client
 from saml2.config import Config
 from saml2.metadata import entity_descriptor, metadata_tostring_fix
-from saml2.s_utils import decode_base64_and_inflate, deflate_and_base64_encode, success_status_factory, \
+from saml2.s_utils import decode_base64_and_inflate, success_status_factory, \
     status_message_factory
 from saml2.saml import name_id_from_string, NameID
 from saml2.samlp import STATUS_REQUEST_DENIED, STATUS_UNKNOWN_PRINCIPAL
 from saml2.validate import valid_instance, ResponseLifetimeExceed
 from xmltodict import parse as xml_to_dict
-from urllib import parse
 
 logger = logging.getLogger(__name__)
 
