@@ -275,34 +275,10 @@ class Saml2(LoginProvider):
                 relay_state=None,
             )
 
-            # Remove \n from signature
-            logoutrequest_data['headers'] = cls.modify_logoutresponse_headers(logoutrequest_data['headers'])
-
             return HttpResponse(
                 status=logoutrequest_data['status'],
                 headers=logoutrequest_data['headers']
             )
-
-    @classmethod
-    def modify_logoutresponse_headers(cls, headers):
-        h = []
-        for headername, headervalue in headers:
-            if headername == "Location":
-                print(f"headervalue: {headervalue}")
-                location_url = parse.urlparse(headervalue)
-                q = parse.parse_qs(location_url.query)
-                samlresponse = q["SAMLResponse"][0]
-                samlresponse = decode_base64_and_inflate(samlresponse).decode("utf-8")
-                # samlresponse = samlresponse.replace("\\n", "")
-                # samlresponse = samlresponse.replace("\n", "")
-                print(f"samlresponse: {samlresponse}")
-                samlresponse = deflate_and_base64_encode(samlresponse.encode("utf-8"))
-                q["SAMLResponse"][0] = samlresponse
-                location = f"{location_url.scheme}://{location_url.netloc}{location_url.path}?{urlencode(q, doseq=True)}"
-                print(f"location: {str(location)}")
-                headervalue = location
-            h.append((headername, headervalue))
-        return h
 
     @classmethod
     def metadata(cls, request):
@@ -362,7 +338,6 @@ class EncryptionMethod(md.EncryptionMethod):
     c_child_order.append('digest_method')
 
 
-
 def handle_logout_request(
         client,
         request,
@@ -376,27 +351,9 @@ def handle_logout_request(
         signature=None,
 ):
     """
-    Deal with a LogoutRequest
-
-    :param request: The request as text string
-    :param name_id: The id of the current user
-    :param binding: Which binding the message came in over
-    :param sign: Whether the response will be signed or not
-    :param sign_alg: The signing algorithm for the response
-    :param digest_alg: The digest algorithm for the the response
-    :param relay_state: The relay state of the request
-    :param sigalg: The SigAlg query param of the request
-    :param signature: The Signature query param of the request
-    :return: Keyword arguments which can be used to send the response
-        what's returned follow different patterns for different bindings.
-        If the binding is BINDIND_SOAP, what is returned looks like this::
-
-            {
-                "data": <the SOAP enveloped response>
-                "url": "",
-                'headers': [('content-type', 'application/soap+xml')]
-                'method': "POST
-            }
+    Overload saml2's handle_logout_request, with modification to ONLY SIGN THE RESPONSE ONCE
+    If the issue at https://github.com/IdentityPython/pysaml2/issues/874 gets resolved,
+    this override should be revisited
     """
     logger.info("logout request: %s", request)
 
@@ -435,8 +392,11 @@ def handle_logout_request(
         _req.message,
         bindings=response_bindings,
         status=status,
+        # BEGIN MODIFICATION
         sign=False,
+        # sign=True,
         # sign_alg=sign_alg,
+        # END MODIFICATION
         digest_alg=digest_alg,
     )
     rinfo = client.response_args(_req.message, response_bindings)
