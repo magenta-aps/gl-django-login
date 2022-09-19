@@ -259,6 +259,11 @@ class Saml2(LoginProvider):
                 relay_state=None,
             )
 
+            if logoutrequest_data['status'] in (301, 302, 303):
+                auth.logout(request)
+                cls.clear_session(request.session)
+                request.session.flush()
+
             return HttpResponse(
                 status=logoutrequest_data['status'],
                 headers=logoutrequest_data['headers']
