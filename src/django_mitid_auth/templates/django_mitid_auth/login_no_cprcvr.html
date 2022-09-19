@@ -4,4 +4,4 @@
 
 <p>{% trans 'Det anvendte login har hverken CPR- eller CVR-nummer tilknyttet.' %}</p>
 
-<a href="{% url 'django_mitid_auth:logout' %}"><button>{% trans 'Log ud' %}</button></a>
+<a href="{{logout_url}}"><button>{% trans 'Log ud' %}</button></a>

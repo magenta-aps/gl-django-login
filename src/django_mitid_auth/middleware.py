@@ -45,8 +45,9 @@ class LoginManager:
         return redirect(self.get_login_redirection_url(request))
 
     def __call__(self, request):
-        if request.path not in self.white_listed_urls and request.path.rstrip('/') not in self.white_listed_urls and not request.path.startswith(settings.STATIC_URL):
-            # When any non-whitelisted page is loaded, check if we are authenticated
+        if request.path not in self.white_listed_urls \
+                and request.path.rstrip('/') not in self.white_listed_urls \
+                and not request.path.startswith(settings.STATIC_URL):            # When any non-whitelisted page is loaded, check if we are authenticated
 
             if self.enabled:
                 if self.provider.is_logged_in(request):
