@@ -86,15 +86,3 @@ class LoginManager:
     def get_backpage(request):
         backpage = request.GET.get('back', request.session.get('backpage', settings.LOGIN_REDIRECT_URL))
         return backpage
-
-    @staticmethod
-    def session_timed_out(request):
-        print("session timed out")
-        whitelist = LoginManager(None).white_listed_urls
-        if request.path in whitelist:
-            return None
-        redirect_url = getattr(settings, "SESSION_TIMEOUT_REDIRECT", None)
-        if redirect_url:
-            return redirect(redirect_url)
-        else:
-            return redirect_to_login(next=request.path)
