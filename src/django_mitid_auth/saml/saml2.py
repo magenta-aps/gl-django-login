@@ -250,7 +250,7 @@ class Saml2(LoginProvider):
             logoutrequest_data = handle_logout_request(
                 client,
                 request.GET['SAMLRequest'],
-                name_id=name_id_from_string(request.session['saml']['name_id']),
+                name_id=name_id_from_string(request.session['saml']['name_id']) if 'saml' in request.session else None,
                 binding='urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
                 sign=True,
                 sign_alg=saml_settings["service"]["sp"]["signing_algorithm"],
@@ -353,6 +353,9 @@ def handle_logout_request(
         sigalg=sigalg,
         signature=signature,
     )
+
+    if name_id is None:
+        name_id = _req.message.name_id
 
     if _req.message.name_id == name_id:
         try:
