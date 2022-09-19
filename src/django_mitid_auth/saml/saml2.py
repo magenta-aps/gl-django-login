@@ -5,16 +5,18 @@ from django.conf import settings
 from django.contrib import auth
 from django.core.cache import caches
 from django.http import HttpResponse, HttpResponseRedirect
-from django.template.response import TemplateResponse
-from django.urls import reverse_lazy
+from django.shortcuts import redirect
+from django.urls import reverse_lazy, reverse
 from django_mitid_auth.loginprovider import LoginProvider
-from saml2 import SamlBase
+from saml2 import SamlBase, BINDING_SOAP, BINDING_HTTP_POST, BINDING_HTTP_REDIRECT
 from saml2 import md
 from saml2.cache import Cache
 from saml2.client import Saml2Client
 from saml2.config import Config
 from saml2.metadata import entity_descriptor, metadata_tostring_fix
+from saml2.s_utils import success_status_factory, status_message_factory
 from saml2.saml import name_id_from_string, NameID
+from saml2.samlp import STATUS_REQUEST_DENIED, STATUS_UNKNOWN_PRINCIPAL
 from saml2.validate import valid_instance, ResponseLifetimeExceed
 from xmltodict import parse as xml_to_dict
 
@@ -120,6 +122,7 @@ class Saml2(LoginProvider):
 
         samlresponse = request.POST['SAMLResponse']
         samlresponse = cls.workaround_replace_digest(samlresponse)
+        namespace = settings.LOGIN_NAMESPACE
 
         try:
             # authn_response is of type saml2.response.AuthnResponse
@@ -130,9 +133,9 @@ class Saml2(LoginProvider):
             if caches['saml'].get("message_id__"+authn_response.in_response_to):
                 caches['saml'].set("message_id__"+authn_response.in_response_to, None)
             else:
-                return TemplateResponse(request, settings.LOGIN_REPEATED_TEMPLATE or "django_mitid_auth/login_repeated.html", status=403)
+                return redirect(getattr(settings, 'LOGIN_REPEATED_URL', reverse(f"{namespace}:saml:login-repeat")))
         except ResponseLifetimeExceed:
-            return TemplateResponse(request, settings.LOGIN_LIFETIME_EXCEEDED_TEMPLATE or "django_mitid_auth/lifetime_exceeded.html", status=403)
+            return redirect(getattr(settings, 'LOGIN_TIMEOUT_URL', reverse(f"{namespace}:saml:login-timeout")))
 
         request.session['user_info'] = {
             key: values[0] if type(values) == list and len(values) == 1 else values
@@ -165,7 +168,7 @@ class Saml2(LoginProvider):
         if request.session['user_info'].get('cpr') or request.session['user_info'].get('cvr'):
             return HttpResponseRedirect(success_url)
         else:
-            return TemplateResponse(request, settings.LOGIN_NO_CPRCVR_TEMPLATE or "django_mitid_auth/no_cprcvr.html", status=403)
+            return redirect(getattr(settings, 'LOGIN_NO_CPRCVR_URL', reverse(f"{namespace}:saml:login-no-cprcvr")))
 
     @staticmethod
     def workaround_replace_digest(samlresponse):
@@ -224,21 +227,42 @@ class Saml2(LoginProvider):
         """Handle a LogoutResponse from the IdP."""
         client = cls.get_client()
 
-        logout_response = client.parse_logout_request_response(
-            request.GET['SAMLResponse'],
-            'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'
-        )
-        session_id, message, headers, msg = client.handle_logout_response(
-            response=logout_response
-        )
+        if 'SAMLResponse' in request.GET:
+            logout_response = client.parse_logout_request_response(
+                request.GET['SAMLResponse'],
+                'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'
+            )
+            session_id, message, headers, msg = client.handle_logout_response(
+                response=logout_response
+            )
 
-        cls.save_client(client)
-        if message == '200 Ok':
-            auth.logout(request)
-            cls.clear_session(request.session)
-            request.session.flush()
-            redirect_to = settings.LOGOUT_REDIRECT_URL
-            return HttpResponseRedirect(redirect_to)
+            cls.save_client(client)
+            if message == '200 Ok':
+                auth.logout(request)
+                cls.clear_session(request.session)
+                request.session.flush()
+                redirect_to = settings.LOGOUT_REDIRECT_URL
+                return HttpResponseRedirect(redirect_to)
+
+        if 'SAMLRequest' in request.GET:
+            saml_settings = cls.saml_settings()
+
+            logoutrequest_data = handle_logout_request(
+                client,
+                request.GET['SAMLRequest'],
+                name_id=name_id_from_string(request.session['saml']['name_id']),
+                binding='urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
+                sign=True,
+                sign_alg=saml_settings["service"]["sp"]["signing_algorithm"],
+                sigalg=request.GET['SigAlg'],
+                signature=request.GET['Signature'],
+                relay_state=None,
+            )
+
+            return HttpResponse(
+                status=logoutrequest_data['status'],
+                headers=logoutrequest_data['headers']
+            )
 
     @classmethod
     def metadata(cls, request):
@@ -296,3 +320,77 @@ class EncryptionMethod(md.EncryptionMethod):
     }
     c_child_order = md.EncryptionMethod.c_child_order[:]
     c_child_order.append('digest_method')
+
+
+def handle_logout_request(
+        client,
+        request,
+        name_id,
+        binding,
+        sign=None,
+        sign_alg=None,
+        digest_alg=None,
+        relay_state=None,
+        sigalg=None,
+        signature=None,
+):
+    """
+    Overload saml2's handle_logout_request, with modification to ONLY SIGN THE RESPONSE ONCE
+    If the issue at https://github.com/IdentityPython/pysaml2/issues/874 gets resolved,
+    this override should be revisited
+    """
+    logger.info("logout request: %s", request)
+
+    _req = client.parse_logout_request(
+        xmlstr=request,
+        binding=binding,
+        relay_state=relay_state,
+        sigalg=sigalg,
+        signature=signature,
+    )
+
+    if _req.message.name_id == name_id:
+        try:
+            if client.local_logout(name_id):
+                status = success_status_factory()
+            else:
+                status = status_message_factory("Server error",
+                                                STATUS_REQUEST_DENIED)
+        except KeyError:
+            status = status_message_factory("Server error",
+                                            STATUS_REQUEST_DENIED)
+    else:
+        status = status_message_factory("Wrong user",
+                                        STATUS_UNKNOWN_PRINCIPAL)
+
+    response_bindings = {
+        BINDING_SOAP: [BINDING_SOAP],
+        BINDING_HTTP_POST: [BINDING_HTTP_POST, BINDING_HTTP_REDIRECT],
+        BINDING_HTTP_REDIRECT: [BINDING_HTTP_REDIRECT, BINDING_HTTP_POST],
+    }.get(binding)
+
+    if sign is None:
+        sign = client.logout_responses_signed
+
+    response = client.create_logout_response(
+        _req.message,
+        bindings=response_bindings,
+        status=status,
+        # BEGIN MODIFICATION
+        sign=False,
+        # sign=True,
+        # sign_alg=sign_alg,
+        # END MODIFICATION
+        digest_alg=digest_alg,
+    )
+    rinfo = client.response_args(_req.message, response_bindings)
+
+    return client.apply_binding(
+        rinfo["binding"],
+        response,
+        rinfo["destination"],
+        relay_state,
+        response=True,
+        sign=sign,
+        sigalg=sign_alg,
+    )
