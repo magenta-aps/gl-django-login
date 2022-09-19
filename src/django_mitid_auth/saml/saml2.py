@@ -248,18 +248,6 @@ class Saml2(LoginProvider):
         if 'SAMLRequest' in request.GET:
             saml_settings = cls.saml_settings()
 
-            samlrequest = request.GET["SAMLRequest"]
-            samlrequest = decode_base64_and_inflate(samlrequest)
-            print(samlrequest)
-
-            _req = client.parse_logout_request(
-                xmlstr=request.GET['SAMLRequest'],
-                binding='urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
-                relay_state=None,
-                sigalg=request.GET['SigAlg'],
-                signature=request.GET['Signature'],
-            )
-
             logoutrequest_data = handle_logout_request(
                 client,
                 request.GET['SAMLRequest'],
@@ -267,7 +255,6 @@ class Saml2(LoginProvider):
                 binding='urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect',
                 sign=True,
                 sign_alg=saml_settings["service"]["sp"]["signing_algorithm"],
-                # digest_alg='http://www.w3.org/2000/09/xmldsig#sha1',
                 sigalg=request.GET['SigAlg'],
                 signature=request.GET['Signature'],
                 relay_state=None,
