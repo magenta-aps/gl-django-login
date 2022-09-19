@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.auth.views import redirect_to_login
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.template.loader import get_template
@@ -48,6 +49,7 @@ class LoginManager:
         if request.path not in self.white_listed_urls \
                 and request.path.rstrip('/') not in self.white_listed_urls \
                 and not request.path.startswith(settings.STATIC_URL):            # When any non-whitelisted page is loaded, check if we are authenticated
+            print(f"{request.path} is not whitelisted; whitelist is {self.white_listed_urls}")
 
             if self.enabled:
                 if self.provider.is_logged_in(request):
@@ -84,3 +86,15 @@ class LoginManager:
     def get_backpage(request):
         backpage = request.GET.get('back', request.session.get('backpage', settings.LOGIN_REDIRECT_URL))
         return backpage
+
+    @staticmethod
+    def session_timed_out(request):
+        print("session timed out")
+        whitelist = LoginManager(None).white_listed_urls
+        if request.path in whitelist:
+            return None
+        redirect_url = getattr(settings, "SESSION_TIMEOUT_REDIRECT", None)
+        if redirect_url:
+            return redirect(redirect_url)
+        else:
+            return redirect_to_login(next=request.path)
