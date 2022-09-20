@@ -137,6 +137,8 @@ class Saml2(LoginProvider):
         except ResponseLifetimeExceed:
             return redirect(getattr(settings, 'LOGIN_TIMEOUT_URL', reverse(f"{namespace}:saml:login-timeout")))
 
+        print(authn_response.get_identity())
+
         request.session['user_info'] = {
             key: values[0] if type(values) == list and len(values) == 1 else values
             for key, values in authn_response.get_identity().items()
