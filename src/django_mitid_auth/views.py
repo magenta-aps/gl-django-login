@@ -39,6 +39,7 @@ class LoginCallbackView(TemplateView):
 
 class LogoutView(View):
     def get(self, request):
+        print("LogoutView")
         try:
             return login_provider_class().logout(request)
         except LoginException as e:

@@ -185,6 +185,7 @@ class Saml2(LoginProvider):
     @classmethod
     def logout(cls, request):
         """Kick off a SAML logout request."""
+        print("saml2.logout")
         client = cls.get_client()
         saml_settings = cls.saml_settings()
         idp_entity_id = saml_settings['idp_entity_id']
@@ -220,6 +221,7 @@ class Saml2(LoginProvider):
         cls.clear_session(request.session)
         request.session.flush()
         redirect_to = settings.LOGOUT_REDIRECT_URL
+        redirect_to = getattr(settings, "LOGOUT_MITID_REDIRECT_URL", settings.LOGOUT_REDIRECT_URL)
         return HttpResponseRedirect(redirect_to)
 
     @classmethod

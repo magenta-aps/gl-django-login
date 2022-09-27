@@ -43,6 +43,7 @@ class LoginManager:
         return login_url + "?back=" + backpage
 
     def redirect_to_login(self, request):
+        print("redirecting to login")
         return redirect(self.get_login_redirection_url(request))
 
     def __call__(self, request):
