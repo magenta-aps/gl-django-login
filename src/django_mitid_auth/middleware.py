@@ -49,7 +49,7 @@ class LoginManager:
         if request.path not in self.white_listed_urls \
                 and request.path.rstrip('/') not in self.white_listed_urls \
                 and not request.path.startswith(settings.STATIC_URL):            # When any non-whitelisted page is loaded, check if we are authenticated
-
+            print(f"{request.path} is not in whitelist; whitelist is {self.white_listed_urls}")
             if self.enabled:
                 if self.provider.is_logged_in(request):
                     return self.get_response(request)
@@ -83,7 +83,12 @@ class LoginManager:
 
     @staticmethod
     def get_backpage(request):
-        backpage = request.GET.get('back', request.session.get('backpage', settings.LOGIN_REDIRECT_URL))
+        backpage = request.GET.get(
+            'back',
+            request.session.get('backpage',
+                getattr(settings, "LOGIN_MITID_REDIRECT_URL", settings.LOGIN_REDIRECT_URL)
+            )
+        )
         return backpage
 
     @staticmethod

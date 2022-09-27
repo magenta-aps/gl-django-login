@@ -33,8 +33,10 @@ class LoginProvider:
     @classmethod
     def logout(cls, request):
         cls.clear_session(request.session)
-        return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
+        url = getattr(settings, "LOGIN_MITID_REDIRECT_URL", settings.LOGIN_REDIRECT_URL)
+        return HttpResponseRedirect(url)
 
     @classmethod
     def handle_logout_callback(cls, request):
-        return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
+        url = getattr(settings, "LOGIN_MITID_REDIRECT_URL", settings.LOGIN_REDIRECT_URL)
+        return HttpResponseRedirect(url)
