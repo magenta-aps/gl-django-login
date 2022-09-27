@@ -12,13 +12,17 @@ class Command(BaseCommand):
         return settings.SAML.get("metadata_remote")
 
     def get_cache_filename(self):
-        if "local" in settings.SAML["metadata"] and len(settings.SAML["metadata"]["local"]):
+        if "local" in settings.SAML["metadata"] and len(
+            settings.SAML["metadata"]["local"]
+        ):
             return settings.SAML["metadata"]["local"][0]
 
     def handle(self, *args, **options):
         remote_url = self.get_url()
         filename = self.get_cache_filename()
-        must_succeed = filename and (not os.path.exists(filename) or os.path.getsize(filename) == 0)
+        must_succeed = filename and (
+            not os.path.exists(filename) or os.path.getsize(filename) == 0
+        )
         if remote_url and filename:
             with open(filename, "wb") as file:
                 response = requests.get(remote_url)

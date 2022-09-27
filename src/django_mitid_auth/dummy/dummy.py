@@ -7,16 +7,15 @@ logger = logging.getLogger(__name__)
 
 
 class DummyProvider(LoginProvider):
-
     @classmethod
     def enabled(cls):
         return True if settings.DEFAULT_CVR or settings.DEFAULT_CPR else False
 
     @classmethod
     def login(cls, request):
-        request.session['user_info'] = {
-            'CVR': settings.DEFAULT_CVR,
-            'CPR': settings.DEFAULT_CPR,
+        request.session["user_info"] = {
+            "CVR": settings.DEFAULT_CVR,
+            "CPR": settings.DEFAULT_CPR,
         }
 
     @classmethod

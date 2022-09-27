@@ -7,19 +7,18 @@ logger = logging.getLogger(__name__)
 
 
 class LoginProvider:
-
     @classmethod
     def enabled(cls):
-        return settings.LOGIN_PROVIDER_CLASS == cls.__module__ + '.' + cls.__qualname__
+        return settings.LOGIN_PROVIDER_CLASS == cls.__module__ + "." + cls.__qualname__
 
     @classmethod
     def is_logged_in(cls, request):
-        return True if request.session.get('user_info') else False
+        return True if request.session.get("user_info") else False
 
     @classmethod
     def clear_session(cls, session):
-        if 'user_info' in session:
-            del session['user_info']
+        if "user_info" in session:
+            del session["user_info"]
         session.save()
 
     @classmethod
@@ -33,8 +32,10 @@ class LoginProvider:
     @classmethod
     def logout(cls, request):
         cls.clear_session(request.session)
-        return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
+        url = getattr(settings, "LOGIN_MITID_REDIRECT_URL", settings.LOGIN_REDIRECT_URL)
+        return HttpResponseRedirect(url)
 
     @classmethod
     def handle_logout_callback(cls, request):
-        return HttpResponseRedirect(settings.LOGIN_REDIRECT_URL)
+        url = getattr(settings, "LOGIN_MITID_REDIRECT_URL", settings.LOGIN_REDIRECT_URL)
+        return HttpResponseRedirect(url)
