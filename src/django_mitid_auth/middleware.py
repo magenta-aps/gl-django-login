@@ -47,6 +47,7 @@ class LoginManager:
         return redirect(self.get_login_redirection_url(request))
 
     def check_whitelist(self, path):
+        print(f"checking path {path}")
         for p in (path, path.rstrip("/")):
             for item in self.white_listed_urls:
                 if type(item) == str:
