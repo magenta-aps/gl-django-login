@@ -78,8 +78,8 @@ class LoginManager:
     def set_dummy_session(self, request):
         if ('user_info' not in request.session or not request.session['user_info']) and (settings.DEFAULT_CVR or settings.DEFAULT_CPR):
             request.session['user_info'] = {
-                'CVR': settings.DEFAULT_CVR,
-                'CPR': settings.DEFAULT_CPR,
+                'cvr': settings.DEFAULT_CVR,
+                'cpr': settings.DEFAULT_CPR,
             }
 
     @staticmethod

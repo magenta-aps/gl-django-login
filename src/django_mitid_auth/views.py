@@ -31,7 +31,7 @@ class LoginCallbackView(TemplateView):
         try:
             return login_provider_class().handle_login_callback(
                 request=request,
-                success_url=request.session.get('backpage') or settings.LOGIN_REDIRECT_URL
+                success_url=request.session.get('backpage') or getattr(settings, "LOGIN_MITID_REDIRECT_URL", settings.LOGIN_REDIRECT_URL)
             )
         except LoginException as e:
             return self.render_to_response({'errors': e.errordict})
@@ -39,7 +39,6 @@ class LoginCallbackView(TemplateView):
 
 class LogoutView(View):
     def get(self, request):
-        print("LogoutView")
         try:
             return login_provider_class().logout(request)
         except LoginException as e:
