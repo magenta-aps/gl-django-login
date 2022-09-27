@@ -1,3 +1,5 @@
+import re
+
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -44,10 +46,19 @@ class LoginManager:
     def redirect_to_login(self, request):
         return redirect(self.get_login_redirection_url(request))
 
+    def check_whitelist(self, path):
+        for p in (path, path.rstrip("/")):
+            for item in self.white_listed_urls:
+                if type(item) == str:
+                    if path == item:
+                        return True
+                elif type(item) == re.Pattern:
+                    if item.match(path):
+                        return True
+
     def __call__(self, request):
         if (
-            request.path not in self.white_listed_urls
-            and request.path.rstrip("/") not in self.white_listed_urls
+            not self.check_whitelist(request.path)
             and not request.path.startswith(settings.STATIC_URL)
         ):  # When any non-whitelisted page is loaded, check if we are authenticated
             if self.enabled:
