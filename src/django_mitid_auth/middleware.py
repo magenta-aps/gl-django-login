@@ -39,7 +39,8 @@ class LoginManager:
         backpage = urlquote(request.path)
         if request.GET:
             backpage += "?" + urlencode(request.GET, True)
-        return settings.LOGIN_URL + "?back=" + backpage
+        login_url = getattr(settings, 'LOGIN_MITID_URL', settings.LOGIN_URL)
+        return login_url + "?back=" + backpage
 
     def redirect_to_login(self, request):
         return redirect(self.get_login_redirection_url(request))
