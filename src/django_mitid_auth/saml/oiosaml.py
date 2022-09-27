@@ -8,7 +8,6 @@ from xmltodict import parse as xml_to_dict
 
 
 class OIOSaml(Saml2):
-
     @classmethod
     def saml_settings(cls):
         """
@@ -113,7 +112,7 @@ class OIOSaml(Saml2):
         https://digitaliser.dk/resource/2377872/artefact/OIOSAMLBasicPrivilegeProfile1_0_1.pdf?artefact=true&PID=2377876
         section 3.5
         """
-        privileges_base64 = saml_claims.get('Privilege')
+        privileges_base64 = saml_claims.get("Privilege")
         if privileges_base64:
             privileges_xml = base64.b64decode(privileges_base64)
             privileges_dict = xml_to_dict(privileges_xml)
@@ -126,10 +125,10 @@ class OIOSaml(Saml2):
             saml_claims = {}
         return {
             **super().get_log_dict(request, saml_auth, saml_claims),
-            'CPR': saml_claims.get('CPR'),
-            'CVR': saml_claims.get('CVR'),
-            'LevelOfAssurance': saml_claims.get('LevelOfAssurance'),
-            'Privileges': cls.get_privileges(saml_claims),
+            "CPR": saml_claims.get("CPR"),
+            "CVR": saml_claims.get("CVR"),
+            "LevelOfAssurance": saml_claims.get("LevelOfAssurance"),
+            "Privileges": cls.get_privileges(saml_claims),
         }
 
     @classmethod
