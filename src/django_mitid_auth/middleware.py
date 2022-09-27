@@ -86,7 +86,8 @@ class LoginManager:
     def get_backpage(request):
         backpage = request.GET.get(
             'back',
-            request.session.get('backpage',
+            request.session.get(
+                'backpage',
                 getattr(settings, "LOGIN_MITID_REDIRECT_URL", settings.LOGIN_REDIRECT_URL)
             )
         )
