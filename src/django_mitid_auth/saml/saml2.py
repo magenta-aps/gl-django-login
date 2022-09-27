@@ -220,7 +220,6 @@ class Saml2(LoginProvider):
         auth.logout(request)
         cls.clear_session(request.session)
         request.session.flush()
-        redirect_to = settings.LOGOUT_REDIRECT_URL
         redirect_to = getattr(settings, "LOGOUT_MITID_REDIRECT_URL", settings.LOGOUT_REDIRECT_URL)
         return HttpResponseRedirect(redirect_to)
 
@@ -243,7 +242,7 @@ class Saml2(LoginProvider):
                 auth.logout(request)
                 cls.clear_session(request.session)
                 request.session.flush()
-                redirect_to = settings.LOGOUT_REDIRECT_URL
+                redirect_to = getattr(settings, "LOGOUT_MITID_REDIRECT_URL", settings.LOGOUT_REDIRECT_URL)
                 return HttpResponseRedirect(redirect_to)
 
         if 'SAMLRequest' in request.GET:
