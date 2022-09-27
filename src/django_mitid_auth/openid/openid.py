@@ -72,9 +72,9 @@ class OpenId(LoginProvider):
         client = Client(
             client_authn_method=CLIENT_AUTHN_METHOD, client_cert=OpenId.client_cert
         )
-        provider_info = client.provider_config(
+        provider_info = client.provider_config(  # noqa
             OpenId.open_id_settings["issuer"]
-        )  # noqa
+        )
         client_reg = RegistrationResponse(
             **{
                 "client_id": OpenId.open_id_settings["client_id"],
@@ -165,9 +165,9 @@ class OpenId(LoginProvider):
                     }
                 )
 
-            provider_info = client.provider_config(
+            provider_info = client.provider_config(  # noqa
                 cls.open_id_settings["issuer"]
-            )  # noqa
+            )
             logger.debug("provider info: {}".format(client.config))
 
             request_args = {

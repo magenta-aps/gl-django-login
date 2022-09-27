@@ -22,4 +22,4 @@ Lint Python:
     - pip3 install flake8
     #- pip3 install -r django/requirements.txt
   script:
-    - flake8 --ignore E501,E226 src/django_mitid_auth/
+    - flake8 --ignore E501,E226,W503 src/django_mitid_auth/
