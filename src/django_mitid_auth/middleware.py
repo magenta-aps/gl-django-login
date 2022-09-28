@@ -50,10 +50,10 @@ class LoginManager:
         for p in (path, path.rstrip("/")):
             for item in self.white_listed_urls:
                 if type(item) == str:
-                    if path == item:
+                    if p == item:
                         return True
                 elif type(item) == re.Pattern:
-                    if item.match(path):
+                    if item.match(p):
                         return True
 
     def __call__(self, request):
