@@ -49,12 +49,11 @@ class LoginManager:
     def check_whitelist(self, path):
         for p in (path, path.rstrip("/")):
             for item in self.white_listed_urls:
-                if type(item) == str:
-                    if p == item:
-                        return True
-                elif type(item) == re.Pattern:
+                if type(item) == re.Pattern:
                     if item.match(p):
                         return True
+                elif p == item:
+                    return True
 
     def __call__(self, request):
         if (
