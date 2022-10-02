@@ -293,8 +293,7 @@ class Saml2(LoginProvider):
                 name_id = _req.message.name_id
 
             logoutrequest_data = client.handle_logout_request(
-                client,
-                request.GET["SAMLRequest"],
+                request=request.GET["SAMLRequest"],
                 name_id=name_id,
                 binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
                 sign=True,
