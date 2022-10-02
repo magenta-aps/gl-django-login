@@ -280,12 +280,22 @@ class Saml2(LoginProvider):
         if "SAMLRequest" in request.GET:
             saml_settings = cls.saml_settings()
 
-            logoutrequest_data = handle_logout_request(
+            if "saml" in request.session:
+                name_id = name_id_from_string(request.session["saml"]["name_id"])
+            else:
+                _req = client.parse_logout_request(
+                    xmlstr=request,
+                    binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+                    relay_state=None,
+                    sigalg=request.GET["SigAlg"],
+                    signature=request.GET["Signature"],
+                )
+                name_id = _req.message.name_id
+
+            logoutrequest_data = client.handle_logout_request(
                 client,
                 request.GET["SAMLRequest"],
-                name_id=name_id_from_string(request.session["saml"]["name_id"])
-                if "saml" in request.session
-                else None,
+                name_id=name_id,
                 binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
                 sign=True,
                 sign_alg=saml_settings["service"]["sp"]["signing_algorithm"],
@@ -363,77 +373,3 @@ class EncryptionMethod(md.EncryptionMethod):
     }
     c_child_order = md.EncryptionMethod.c_child_order[:]
     c_child_order.append("digest_method")
-
-
-def handle_logout_request(
-    client,
-    request,
-    name_id,
-    binding,
-    sign=None,
-    sign_alg=None,
-    digest_alg=None,
-    relay_state=None,
-    sigalg=None,
-    signature=None,
-):
-    """
-    Overload saml2's handle_logout_request, with modification to ONLY SIGN THE RESPONSE ONCE
-    If the issue at https://github.com/IdentityPython/pysaml2/issues/874 gets resolved,
-    this override should be revisited
-    """
-    logger.info("logout request: %s", request)
-
-    _req = client.parse_logout_request(
-        xmlstr=request,
-        binding=binding,
-        relay_state=relay_state,
-        sigalg=sigalg,
-        signature=signature,
-    )
-
-    if name_id is None:
-        name_id = _req.message.name_id
-
-    if _req.message.name_id == name_id:
-        try:
-            if client.local_logout(name_id):
-                status = success_status_factory()
-            else:
-                status = status_message_factory("Server error", STATUS_REQUEST_DENIED)
-        except KeyError:
-            status = status_message_factory("Server error", STATUS_REQUEST_DENIED)
-    else:
-        status = status_message_factory("Wrong user", STATUS_UNKNOWN_PRINCIPAL)
-
-    response_bindings = {
-        BINDING_SOAP: [BINDING_SOAP],
-        BINDING_HTTP_POST: [BINDING_HTTP_POST, BINDING_HTTP_REDIRECT],
-        BINDING_HTTP_REDIRECT: [BINDING_HTTP_REDIRECT, BINDING_HTTP_POST],
-    }.get(binding)
-
-    if sign is None:
-        sign = client.logout_responses_signed
-
-    response = client.create_logout_response(
-        _req.message,
-        bindings=response_bindings,
-        status=status,
-        # BEGIN MODIFICATION
-        sign=False,
-        # sign=True,
-        # sign_alg=sign_alg,
-        # END MODIFICATION
-        digest_alg=digest_alg,
-    )
-    rinfo = client.response_args(_req.message, response_bindings)
-
-    return client.apply_binding(
-        rinfo["binding"],
-        response,
-        rinfo["destination"],
-        relay_state,
-        response=True,
-        sign=sign,
-        sigalg=sign_alg,
-    )

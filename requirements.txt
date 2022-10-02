@@ -1,3 +1,3 @@
 django
-pysaml2==7.2.1
+pysaml2 @ git + https://github.com/IdentityPython/pysaml2.git@52b7ccdcc81a56075c1e97b38868eb8b45611261
 xmltodict>=0.12.0
