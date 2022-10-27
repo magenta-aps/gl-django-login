@@ -48,6 +48,10 @@ class OpenId(LoginProvider):
         # Temporary fallback until we get MitID rolled out everywhere
         reverse_lazy(settings.LOGIN_NAMESPACE + ":oid:login-callback-2"),
         reverse_lazy(settings.LOGIN_NAMESPACE + ":oid:logout-callback"),
+        reverse_lazy(settings.LOGIN_NAMESPACE + ":oid-2:login-callback"),
+        reverse_lazy(settings.LOGIN_NAMESPACE + ":oid-2:logout"),
+        reverse_lazy(settings.LOGIN_NAMESPACE + ":oid-2:login-callback-2"),
+        reverse_lazy(settings.LOGIN_NAMESPACE + ":oid-2:logout-callback"),
     ]
 
     @classmethod
