@@ -44,6 +44,10 @@ class OpenId(LoginProvider):
     whitelist = [
         reverse_lazy(settings.LOGIN_NAMESPACE + ":oid:login-callback"),
         reverse_lazy(settings.LOGIN_NAMESPACE + ":oid:logout"),
+
+        # Temporary fallback until we get MitID rolled out everywhere
+        reverse_lazy(settings.LOGIN_NAMESPACE + ":oid:login-callback-2"),
+        reverse_lazy(settings.LOGIN_NAMESPACE + ":oid:logout-callback"),
     ]
 
     @classmethod
@@ -207,6 +211,8 @@ class OpenId(LoginProvider):
                 )
                 user_info_dict = userinfo.to_dict()
                 request.session["user_info"] = user_info_dict
+                for key, value in user_info_dict.items():
+                    request.session["user_info"][key.lower()] = value
                 request.session["raw_id_token"] = resp["id_token"].jwt
                 # always delete the state so it is not reused
                 del request.session["oid_state"]
