@@ -214,9 +214,13 @@ class OpenId(LoginProvider):
                     state=request.session["oid_state"]
                 )
                 user_info_dict = userinfo.to_dict()
+
+                keys = list(user_info_dict.keys())
+                for key in keys:
+                    if key.lower() != key:
+                        user_info_dict[key.lower()] = user_info_dict[key]
                 request.session["user_info"] = user_info_dict
-                for key, value in user_info_dict.items():
-                    request.session["user_info"][key.lower()] = value
+
                 request.session["raw_id_token"] = resp["id_token"].jwt
                 # always delete the state so it is not reused
                 del request.session["oid_state"]

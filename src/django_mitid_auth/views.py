@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_exempt
@@ -39,7 +40,10 @@ class LoginCallbackView(TemplateView):
                 success_url=request.session.get("backpage") or redirect_to,
             )
         except LoginException as e:
-            return self.render_to_response({"errors": e.errordict})
+            return self.render_to_response({
+                "errors": e.errordict,
+                "login_url": reverse(f"{settings.LOGIN_NAMESPACE}:login"),
+            })
 
 
 class LogoutView(View):
@@ -65,4 +69,7 @@ class LogoutCallback(TemplateView):
         try:
             return login_provider_class().handle_logout_callback(request)
         except LoginException as e:
-            return self.render_to_response({"errors": e.errordict})
+            return self.render_to_response({
+                "errors": e.errordict,
+                "login_url": reverse(f"{settings.LOGIN_NAMESPACE}:login"),
+            })

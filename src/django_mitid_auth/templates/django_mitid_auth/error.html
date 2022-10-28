@@ -5,4 +5,4 @@
 {% endfor %}
 </ul>
 
-<a href="{% url 'mitid_auth:login' %}"><button>{% trans 'Try again' %}</button></a>
+<a href="{{ login_url }}"><button>{% trans 'Try again' %}</button></a>
