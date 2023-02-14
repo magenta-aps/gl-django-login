@@ -13,8 +13,6 @@ variables:
   stage: lint
   needs: []
   image: python:3.8
-  tags:
-    - docker
 
 Lint Python:
   <<: *lint-default
