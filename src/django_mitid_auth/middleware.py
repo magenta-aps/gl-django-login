@@ -50,7 +50,7 @@ class LoginManager:
     def check_whitelist(self, path):
         for p in (path, path.rstrip("/")):
             for item in self.white_listed_urls:
-                if type(item) == re.Pattern:
+                if type(item) is re.Pattern:
                     if item.match(p):
                         return True
                 elif p == item:
@@ -96,8 +96,8 @@ class LoginManager:
                 request.session["user_info"] = populate_dummy_session()
             elif settings.DEFAULT_CVR or settings.DEFAULT_CPR:
                 request.session["user_info"] = {
-                        "cvr": getattr(settings, "DEFAULT_CVR"),
-                        "cpr": getattr(settings, "DEFAULT_CPR"),
+                    "cvr": getattr(settings, "DEFAULT_CVR"),
+                    "cpr": getattr(settings, "DEFAULT_CPR"),
                 }
 
     @staticmethod
