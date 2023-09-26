@@ -95,10 +95,10 @@ class LoginManager:
             if populate_dummy_session:
                 request.session["user_info"] = populate_dummy_session()
             elif settings.DEFAULT_CVR or settings.DEFAULT_CPR:
-            request.session["user_info"] = {
-                    "cvr": getattr(settings, "DEFAULT_CVR"),
-                    "cpr": getattr(settings, "DEFAULT_CPR"),
-            }
+                request.session["user_info"] = {
+                        "cvr": getattr(settings, "DEFAULT_CVR"),
+                        "cpr": getattr(settings, "DEFAULT_CPR"),
+                }
 
     @staticmethod
     def get_backpage(request):

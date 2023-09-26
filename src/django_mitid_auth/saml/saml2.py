@@ -149,7 +149,7 @@ class Saml2(LoginProvider):
             )
 
         request.session["user_info"] = {
-            key: values[0] if type(values) == list and len(values) == 1 else values
+            key: values[0] if type(values) is list and len(values) == 1 else values
             for key, values in authn_response.get_identity().items()
         }
         request.session["saml"] = {
@@ -320,7 +320,7 @@ class Saml2(LoginProvider):
 
     @staticmethod
     def _set_metadata_encryption_method(key_descriptors):
-        if type(key_descriptors) != list:
+        if type(key_descriptors) is not list:
             key_descriptors = [key_descriptors]
         for key_descriptor in key_descriptors:
             if key_descriptor.use == "encryption":

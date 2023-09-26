@@ -15,7 +15,7 @@ class MitIdLOAMixin:
             user_level_of_assurance = request.session["saml"]["ava"].get(
                 "levelofassurance"
             )
-            if type(user_level_of_assurance) == list and len(user_level_of_assurance) == 1:
+            if type(user_level_of_assurance) is list and len(user_level_of_assurance) == 1:
                 user_level_of_assurance = user_level_of_assurance[0]
             if user_level_of_assurance is None or self.levels.index(
                 user_level_of_assurance
