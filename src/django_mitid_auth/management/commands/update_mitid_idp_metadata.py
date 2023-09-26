@@ -9,7 +9,7 @@ class Command(BaseCommand):
     help = "Wait for database to be available"
 
     def get_url(self):
-        return settings.SAML.get("metadata_remote")
+        return settings.SAML.get("metadata_remote_container") or settings.SAML.get("metadata_remote")
 
     def get_cache_filename(self):
         if "local" in settings.SAML["metadata"] and len(
