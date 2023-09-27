@@ -7,18 +7,20 @@ logger = logging.getLogger(__name__)
 
 
 class LoginProvider:
+    session_data_key = getattr(settings, "LOGIN_SESSION_DATA_KEY", None) or "user_info"
+
     @classmethod
     def enabled(cls):
         return settings.LOGIN_PROVIDER_CLASS == cls.__module__ + "." + cls.__qualname__
 
     @classmethod
     def is_logged_in(cls, request):
-        return True if request.session.get("user_info") else False
+        return True if request.session.get(cls.session_data_key) else False
 
     @classmethod
     def clear_session(cls, session):
-        if "user_info" in session:
-            del session["user_info"]
+        if cls.session_data_key in session:
+            del session[cls.session_data_key]
         session.save()
 
     @classmethod

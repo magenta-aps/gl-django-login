@@ -19,10 +19,10 @@ logger = logging.getLogger(__name__)
 
 
 class OpenId(LoginProvider):
-
     open_id_settings = {}
     kc_rsa = None
     client_cert = None
+    session_data_key = getattr(settings, "LOGIN_SESSION_DATA_KEY", None) or "user_info"
     if getattr(settings, "OPENID_CONNECT", None) and settings.OPENID_CONNECT.get(
         "enabled", True
     ):
@@ -44,7 +44,6 @@ class OpenId(LoginProvider):
     whitelist = [
         reverse_lazy(settings.LOGIN_NAMESPACE + ":oid:login-callback"),
         reverse_lazy(settings.LOGIN_NAMESPACE + ":oid:logout"),
-
         # Temporary fallback until we get MitID rolled out everywhere
         reverse_lazy(settings.LOGIN_NAMESPACE + ":oid:login-callback-2"),
         reverse_lazy(settings.LOGIN_NAMESPACE + ":oid:logout-callback"),
@@ -67,7 +66,7 @@ class OpenId(LoginProvider):
         for key in [
             "oid_state",
             "oid_nonce",
-            "user_info",
+            cls.session_data_key,
             "login_method",
             "has_checked_cvr",
         ]:
@@ -219,7 +218,7 @@ class OpenId(LoginProvider):
                 for key in keys:
                     if key.lower() != key:
                         user_info_dict[key.lower()] = user_info_dict[key]
-                request.session["user_info"] = user_info_dict
+                request.session[cls.session_data_key] = user_info_dict
 
                 request.session["raw_id_token"] = resp["id_token"].jwt
                 # always delete the state so it is not reused
