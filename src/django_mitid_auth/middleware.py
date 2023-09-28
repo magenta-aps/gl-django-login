@@ -7,7 +7,7 @@ from django.template.loader import get_template
 from django.urls import reverse
 from django.utils.http import urlencode
 from django_mitid_auth import login_provider_class
-from urllib.parse import quote as urlquote
+from urllib.parse import quote as urlquote, quote_plus
 
 
 class LoginManager:
@@ -40,7 +40,7 @@ class LoginManager:
             ]
 
     def get_login_redirection_url(self, request):
-        backpage = urlquote(request.path)
+        backpage = quote_plus(request.path)
         if request.GET:
             backpage += "?" + urlencode(request.GET, True)
         login_url = getattr(settings, "LOGIN_MITID_URL", settings.LOGIN_URL)
