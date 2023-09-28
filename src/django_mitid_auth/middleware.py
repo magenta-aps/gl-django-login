@@ -1,4 +1,5 @@
 import re
+from urllib.parse import quote_plus
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -7,10 +8,11 @@ from django.template.loader import get_template
 from django.urls import reverse
 from django.utils.http import urlencode
 from django_mitid_auth import login_provider_class
-from urllib.parse import quote as urlquote
 
 
 class LoginManager:
+    session_data_key = getattr(settings, "LOGIN_SESSION_DATA_KEY", None) or "user_info"
+
     @property
     def enabled(self):
         return settings.LOGIN_PROVIDER_CLASS is not None
@@ -38,7 +40,7 @@ class LoginManager:
             ]
 
     def get_login_redirection_url(self, request):
-        backpage = urlquote(request.path)
+        backpage = quote_plus(request.path)
         if request.GET:
             backpage += "?" + urlencode(request.GET, True)
         login_url = getattr(settings, "LOGIN_MITID_URL", settings.LOGIN_URL)
@@ -50,16 +52,15 @@ class LoginManager:
     def check_whitelist(self, path):
         for p in (path, path.rstrip("/")):
             for item in self.white_listed_urls:
-                if type(item) == re.Pattern:
+                if type(item) is re.Pattern:
                     if item.match(p):
                         return True
                 elif p == item:
                     return True
 
     def __call__(self, request):
-        if (
-            not self.check_whitelist(request.path)
-            and not request.path.startswith(settings.STATIC_URL)
+        if not self.check_whitelist(request.path) and not request.path.startswith(
+            settings.STATIC_URL
         ):  # When any non-whitelisted page is loaded, check if we are authenticated
             if self.enabled:
                 if self.provider.is_logged_in(request):
@@ -90,15 +91,18 @@ class LoginManager:
         return self.get_response(request)
 
     def set_dummy_session(self, request):
-        if "user_info" not in request.session or not request.session["user_info"]:
+        if (
+            self.session_data_key not in request.session
+            or not request.session[self.session_data_key]
+        ):
             populate_dummy_session = getattr(settings, "POPULATE_DUMMY_SESSION")
             if populate_dummy_session:
-                request.session["user_info"] = populate_dummy_session()
+                request.session[self.session_data_key] = populate_dummy_session()
             elif settings.DEFAULT_CVR or settings.DEFAULT_CPR:
-            request.session["user_info"] = {
+                request.session[self.session_data_key] = {
                     "cvr": getattr(settings, "DEFAULT_CVR"),
                     "cpr": getattr(settings, "DEFAULT_CPR"),
-            }
+                }
 
     @staticmethod
     def get_backpage(request):

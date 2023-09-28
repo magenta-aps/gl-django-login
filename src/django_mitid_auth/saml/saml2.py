@@ -24,9 +24,10 @@ logger = logging.getLogger(__name__)
 
 
 class Saml2(LoginProvider):
+    session_data_key = getattr(settings, "LOGIN_SESSION_DATA_KEY", None) or "user_info"
     whitelist = [reverse_lazy(settings.LOGIN_NAMESPACE + ":saml:metadata")]
 
-    session_keys = ("saml", "user_info")
+    session_keys = ("saml", session_data_key)
 
     claims_map = {
         "PersonName": "http://schemas.microsoft.com/identity/claims/displayname",
@@ -86,7 +87,8 @@ class Saml2(LoginProvider):
 
     @classmethod
     def clear_session(cls, session):
-        for key in ["user_info", "cvr", "cpr", "saml"]:
+        extra_session_keys = getattr(settings, "LOGIN_SESSION_KEYS", [])
+        for key in [cls.session_data_key, "cvr", "cpr", "saml"] + extra_session_keys:
             if key in session:
                 del session[key]
         session.save()
@@ -148,8 +150,8 @@ class Saml2(LoginProvider):
                 )
             )
 
-        request.session["user_info"] = {
-            key: values[0] if type(values) == list and len(values) == 1 else values
+        request.session[cls.session_data_key] = {
+            key: values[0] if type(values) is list and len(values) == 1 else values
             for key, values in authn_response.get_identity().items()
         }
         request.session["saml"] = {
@@ -179,9 +181,9 @@ class Saml2(LoginProvider):
             else None,
             request.session.session_key,
         )
-        if request.session["user_info"].get("cpr") or request.session["user_info"].get(
-            "cvr"
-        ):
+        if request.session[cls.session_data_key].get("cpr") or request.session[
+            cls.session_data_key
+        ].get("cvr"):
             return HttpResponseRedirect(success_url)
         else:
             return redirect(
@@ -320,7 +322,7 @@ class Saml2(LoginProvider):
 
     @staticmethod
     def _set_metadata_encryption_method(key_descriptors):
-        if type(key_descriptors) != list:
+        if type(key_descriptors) is not list:
             key_descriptors = [key_descriptors]
         for key_descriptor in key_descriptors:
             if key_descriptor.use == "encryption":

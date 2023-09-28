@@ -17,7 +17,6 @@ urlpatterns = [
     path("logout/callback/", LogoutCallback.as_view(), name="logout-callback"),
     path("oid/", include("django_mitid_auth.openid.urls", namespace="oid")),
     path("saml/", include("django_mitid_auth.saml.urls", namespace="saml")),
-
     # Temporary fallback until we get MitID rolled out everywhere
     path("user/oid/", include("django_mitid_auth.openid.urls", namespace="oid-2")),
 ]
