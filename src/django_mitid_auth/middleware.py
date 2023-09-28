@@ -1,4 +1,5 @@
 import re
+from urllib.parse import quote_plus
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -7,7 +8,6 @@ from django.template.loader import get_template
 from django.urls import reverse
 from django.utils.http import urlencode
 from django_mitid_auth import login_provider_class
-from urllib.parse import quote as urlquote, quote_plus
 
 
 class LoginManager:
