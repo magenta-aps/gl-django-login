@@ -97,7 +97,7 @@ class LoginManager:
     @classmethod
     def set_dummy_session(cls, request):
         if (
-                cls.session_data_key not in request.session
+            cls.session_data_key not in request.session
             or not request.session[cls.session_data_key]
         ):
             populate_dummy_session = getattr(settings, "POPULATE_DUMMY_SESSION")
