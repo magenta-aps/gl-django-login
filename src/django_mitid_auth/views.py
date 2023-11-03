@@ -54,7 +54,7 @@ class LogoutView(View):
         if (
             settings.LOGIN_PROVIDER_CLASS is not None
             and settings.LOGIN_BYPASS_ENABLED
-            and request.session["login_bypassed"]
+            and request.session.get("login_bypassed", False)
         ):
             LoginManager.clear_dummy_session(request)
             return redirect(settings.LOGOUT_REDIRECT_URL)
