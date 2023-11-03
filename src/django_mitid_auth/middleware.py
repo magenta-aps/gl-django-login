@@ -66,11 +66,13 @@ class LoginManager:
                 if self.provider.is_logged_in(request):
                     return self.get_response(request)
                 else:
+                    print(f"can_bypass: {self.can_bypass}")
                     if self.can_bypass:
                         if request.GET.get("login_bypass"):
                             # set up dummy session
                             self.set_dummy_session(request)
                         else:
+                            print("show bypass page")
                             # offer bypass page
                             return HttpResponse(
                                 get_template("django_mitid_auth/bypass.html").render(
@@ -83,6 +85,7 @@ class LoginManager:
                                 )
                             )
                     else:
+                        print("cannot bypass")
                         return self.redirect_to_login(request)
             else:
                 # Not enabled; fall back to dummy user if available
