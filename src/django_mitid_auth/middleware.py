@@ -104,11 +104,13 @@ class LoginManager:
                     "cvr": getattr(settings, "DEFAULT_CVR"),
                     "cpr": getattr(settings, "DEFAULT_CPR"),
                 }
+            request.session["login_bypassed"] = True
 
     @classmethod
     def clear_dummy_session(cls, request):
-        if cls.session_data_key in request.session:
-            del request.session[cls.session_data_key]
+        for key in (cls.session_data_key, "login_bypassed"):
+            if key in request.session:
+                del request.session[key]
 
     @staticmethod
     def get_backpage(request):
