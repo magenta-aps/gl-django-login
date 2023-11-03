@@ -90,19 +90,25 @@ class LoginManager:
 
         return self.get_response(request)
 
-    def set_dummy_session(self, request):
+    @classmethod
+    def set_dummy_session(cls, request):
         if (
-            self.session_data_key not in request.session
-            or not request.session[self.session_data_key]
+            cls.session_data_key not in request.session
+            or not request.session[cls.session_data_key]
         ):
             populate_dummy_session = getattr(settings, "POPULATE_DUMMY_SESSION")
             if populate_dummy_session:
-                request.session[self.session_data_key] = populate_dummy_session()
+                request.session[cls.session_data_key] = populate_dummy_session()
             elif settings.DEFAULT_CVR or settings.DEFAULT_CPR:
-                request.session[self.session_data_key] = {
+                request.session[cls.session_data_key] = {
                     "cvr": getattr(settings, "DEFAULT_CVR"),
                     "cpr": getattr(settings, "DEFAULT_CPR"),
                 }
+
+    @classmethod
+    def clear_dummy_session(cls, request):
+        if cls.session_data_key in request.session:
+            del request.session[cls.session_data_key]
 
     @staticmethod
     def get_backpage(request):

@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.clickjacking import xframe_options_exempt
@@ -7,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import View, TemplateView
 from django_mitid_auth import login_provider_class
 from django_mitid_auth.exceptions import LoginException
+from django_mitid_auth.middleware import LoginManager
 
 
 class LoginView(View):
@@ -49,6 +51,9 @@ class LoginCallbackView(TemplateView):
 
 class LogoutView(View):
     def get(self, request):
+        if settings.LOGIN_PROVIDER_CLASS is not None and settings.LOGIN_BYPASS_ENABLED:
+            LoginManager.clear_dummy_session()
+            return redirect(settings.LOGOUT_REDIRECT_URL)
         try:
             return login_provider_class().logout(request)
         except LoginException as e:
