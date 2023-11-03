@@ -51,8 +51,12 @@ class LoginCallbackView(TemplateView):
 
 class LogoutView(View):
     def get(self, request):
-        if settings.LOGIN_PROVIDER_CLASS is not None and settings.LOGIN_BYPASS_ENABLED:
-            LoginManager.clear_dummy_session()
+        if (
+            settings.LOGIN_PROVIDER_CLASS is not None
+            and settings.LOGIN_BYPASS_ENABLED
+            and request.session["login_bypassed"]
+        ):
+            LoginManager.clear_dummy_session(request)
             return redirect(settings.LOGOUT_REDIRECT_URL)
         try:
             return login_provider_class().logout(request)
