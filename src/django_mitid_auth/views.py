@@ -16,6 +16,7 @@ class LoginView(View):
         request.session["backpage"] = request.GET.get("back") or request.GET.get(
             REDIRECT_FIELD_NAME
         )
+        print(f"Set backpage: {request.session['backpage']}")
         provider = login_provider_class()
         request.session["login_method"] = provider.__class__.__name__
         return provider.login(request)
@@ -38,8 +39,11 @@ class LoginCallbackView(TemplateView):
             )
             if "backpage" in request.session:
                 backpage = request.session.pop("backpage")
+                print(f"Get backpage: {backpage}")
                 if backpage:
                     redirect_to = backpage
+            else:
+                print("not in session")
             return login_provider_class().handle_login_callback(
                 request=request,
                 success_url=redirect_to,
