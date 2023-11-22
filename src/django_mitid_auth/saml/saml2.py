@@ -149,7 +149,6 @@ class Saml2(LoginProvider):
                     reverse(f"{namespace}:saml:login-timeout"),
                 )
             )
-
         request.session[cls.session_data_key] = {
             key: values[0] if type(values) is list and len(values) == 1 else values
             for key, values in authn_response.get_identity().items()
