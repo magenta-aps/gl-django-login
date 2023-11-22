@@ -119,6 +119,7 @@ class Saml2(LoginProvider):
 
     @classmethod
     def handle_login_callback(cls, request, success_url):
+        print("handle_login_callback")
         """Handle an AuthenticationResponse from the IdP."""
         client = cls.get_client()
 
@@ -134,6 +135,7 @@ class Saml2(LoginProvider):
             if caches["saml"].get("message_id__" + authn_response.in_response_to):
                 caches["saml"].set("message_id__" + authn_response.in_response_to, None)
             else:
+                print("ERROR: repeated")
                 return redirect(
                     getattr(
                         settings,
@@ -142,6 +144,7 @@ class Saml2(LoginProvider):
                     )
                 )
         except ResponseLifetimeExceed:
+            print("ERROR: expired")
             return redirect(
                 getattr(
                     settings,
@@ -149,6 +152,7 @@ class Saml2(LoginProvider):
                     reverse(f"{namespace}:saml:login-timeout"),
                 )
             )
+        print("no error")
         request.session[cls.session_data_key] = {
             key: values[0] if type(values) is list and len(values) == 1 else values
             for key, values in authn_response.get_identity().items()

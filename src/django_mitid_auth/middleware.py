@@ -62,6 +62,7 @@ class LoginManager:
         if not self.check_whitelist(request.path) and not request.path.startswith(
             settings.STATIC_URL
         ):  # When any non-whitelisted page is loaded, check if we are authenticated
+            print(f"{request.path} is not whitelisted")
             if self.enabled:
                 if self.provider.is_logged_in(request):
                     return self.get_response(request)
