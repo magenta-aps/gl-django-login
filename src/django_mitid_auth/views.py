@@ -36,6 +36,7 @@ class LoginCallbackView(TemplateView):
             redirect_to = getattr(
                 settings, "LOGIN_MITID_REDIRECT_URL", settings.LOGIN_REDIRECT_URL
             )
+            print(f"redirect_to: {redirect_to}")
             if "backpage" in request.session:
                 backpage = request.session.pop("backpage")
                 if backpage:
