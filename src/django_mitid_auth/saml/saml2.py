@@ -119,7 +119,7 @@ class Saml2(LoginProvider):
 
     @classmethod
     def handle_login_callback(cls, request, success_url):
-        print("saml2.handle_login_callback")
+        print(f"saml2.handle_login_callback({success_url})")
         """Handle an AuthenticationResponse from the IdP."""
         client = cls.get_client()
 
