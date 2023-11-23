@@ -134,15 +134,9 @@ class Saml2(LoginProvider):
             authn_response = client.parse_authn_request_response(
                 samlresponse, "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
             )
-            print(f'caches["saml"]: {caches["saml"]}')
-            print(f"authn_response.in_response_to: {authn_response.in_response_to}")
-            print(f'caches["saml"].get("message_id__" + authn_response.in_response_to): '
-                  f'{caches["saml"].get("message_id__" + authn_response.in_response_to)}')
             if caches["saml"].get("message_id__" + authn_response.in_response_to):
-                print("found")
                 caches["saml"].set("message_id__" + authn_response.in_response_to, None)
             else:
-                print("ERROR: repeated")
                 return redirect(
                     getattr(
                         settings,
