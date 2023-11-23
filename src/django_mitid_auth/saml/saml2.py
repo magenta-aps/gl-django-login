@@ -139,6 +139,7 @@ class Saml2(LoginProvider):
             print(f'caches["saml"].get("message_id__" + authn_response.in_response_to): '
                   f'{caches["saml"].get("message_id__" + authn_response.in_response_to)}')
             if caches["saml"].get("message_id__" + authn_response.in_response_to):
+                print("found")
                 caches["saml"].set("message_id__" + authn_response.in_response_to, None)
             else:
                 print("ERROR: repeated")
