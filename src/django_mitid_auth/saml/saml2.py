@@ -4,6 +4,7 @@ import logging
 from django.conf import settings
 from django.contrib import auth
 from django.core.cache import caches
+from django.core.cache.backends.db import DatabaseCache
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse_lazy, reverse
@@ -127,6 +128,7 @@ class Saml2(LoginProvider):
         samlresponse = cls.workaround_replace_digest(samlresponse)
         namespace = settings.LOGIN_NAMESPACE
 
+        DatabaseCache
         try:
             # authn_response is of type saml2.response.AuthnResponse
             authn_response = client.parse_authn_request_response(
@@ -134,6 +136,8 @@ class Saml2(LoginProvider):
             )
             print(f'caches["saml"]: {caches["saml"]}')
             print(f"authn_response.in_response_to: {authn_response.in_response_to}")
+            print(f'caches["saml"].get("message_id__" + authn_response.in_response_to): '
+                  f'{caches["saml"].get("message_id__" + authn_response.in_response_to)}')
             if caches["saml"].get("message_id__" + authn_response.in_response_to):
                 caches["saml"].set("message_id__" + authn_response.in_response_to, None)
             else:
