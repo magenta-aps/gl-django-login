@@ -96,7 +96,7 @@ class LoginManager:
             cls.session_data_key not in request.session
             or not request.session[cls.session_data_key]
         ):
-            populate_dummy_session = getattr(settings, "POPULATE_DUMMY_SESSION")
+            populate_dummy_session = getattr(settings, "POPULATE_DUMMY_SESSION", False)
             if populate_dummy_session:
                 request.session[cls.session_data_key] = populate_dummy_session()
             elif settings.DEFAULT_CVR or settings.DEFAULT_CPR:
