@@ -74,7 +74,9 @@ class Saml2(LoginProvider):
             sigalg=saml_settings["service"]["sp"]["signing_algorithm"],
             sign_prepare=False,
             sign=True,
-            provider_name=base64.b64encode(saml_settings["name"]).decode("ascii"),
+            provider_name=base64.b64encode(
+                saml_settings["name"].encode("utf-8")
+            ).decode("ascii"),
             **auth_params,
         )
         caches["saml"].set("message_id__" + saml_session_id, True)
