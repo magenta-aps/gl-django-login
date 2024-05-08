@@ -3,6 +3,7 @@ import logging
 
 from django.conf import settings
 from django.contrib import auth
+from django.contrib.auth import get_user_model
 from django.core.cache import caches
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
@@ -333,6 +334,16 @@ class Saml2(LoginProvider):
                 dig.algorithm = "http://www.w3.org/2000/09/xmldsig#sha1"
                 enc2.digest_method = dig
                 key_descriptor.encryption_method = [enc1, enc2]
+
+    def middleware_call(self, request):
+        if request.session.get("saml") and hasattr(settings, "AUTH_USER_MODEL"):
+            user_model = get_user_model()
+            request.user = user_model()
+            for key, value in request.session["saml"].items():
+                print(f"{key}: {value}")
+
+            # SAML_ATTRIBUTE_MAPPING
+
 
 
 class DigestMethodType(SamlBase):
