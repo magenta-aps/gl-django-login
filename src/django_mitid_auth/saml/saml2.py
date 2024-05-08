@@ -337,6 +337,7 @@ class Saml2(LoginProvider):
 
     @classmethod
     def middleware_call(cls, request):
+        print("middleware_call")
         if request.session.get("saml") and hasattr(settings, "AUTH_USER_MODEL"):
             user_model = get_user_model()
             request.user = user_model()

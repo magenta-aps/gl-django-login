@@ -41,3 +41,7 @@ class LoginProvider:
     def handle_logout_callback(cls, request):
         url = getattr(settings, "LOGIN_MITID_REDIRECT_URL", settings.LOGIN_REDIRECT_URL)
         return HttpResponseRedirect(url)
+
+    @classmethod
+    def middleware_call(cls, request):
+        pass
