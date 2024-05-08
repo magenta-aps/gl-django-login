@@ -3,7 +3,6 @@ import logging
 
 from django.conf import settings
 from django.contrib import auth
-from django.contrib.auth import get_user_model
 from django.core.cache import caches
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
