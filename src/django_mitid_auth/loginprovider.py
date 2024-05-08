@@ -15,7 +15,11 @@ class LoginProvider:
 
     @classmethod
     def is_logged_in(cls, request):
-        return True if request.session.get(cls.session_data_key) else False
+        return (
+            True
+            if request.session.get(cls.session_data_key) or request.user.is_authenticated
+            else False
+        )
 
     @classmethod
     def clear_session(cls, session):
