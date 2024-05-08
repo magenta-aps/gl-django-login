@@ -335,7 +335,8 @@ class Saml2(LoginProvider):
                 enc2.digest_method = dig
                 key_descriptor.encryption_method = [enc1, enc2]
 
-    def middleware_call(self, request):
+    @classmethod
+    def middleware_call(cls, request):
         if request.session.get("saml") and hasattr(settings, "AUTH_USER_MODEL"):
             user_model = get_user_model()
             request.user = user_model()
@@ -343,7 +344,6 @@ class Saml2(LoginProvider):
                 print(f"{key}: {value}")
 
             # SAML_ATTRIBUTE_MAPPING
-
 
 
 class DigestMethodType(SamlBase):
