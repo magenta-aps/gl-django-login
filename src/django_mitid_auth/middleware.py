@@ -88,9 +88,6 @@ class LoginManager:
                 # Not enabled; fall back to dummy user if available
                 self.set_dummy_session(request)
 
-        print("calling middleware")
-        self.provider.middleware_call(request=request)
-
         return self.get_response(request)
 
     @classmethod
