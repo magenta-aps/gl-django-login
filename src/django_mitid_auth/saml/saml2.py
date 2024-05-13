@@ -122,6 +122,7 @@ class Saml2(LoginProvider):
 
     @classmethod
     def handle_login_callback(cls, request, success_url):
+        print(f"handle_login_callback success_url: {success_url}")
         """Handle an AuthenticationResponse from the IdP."""
         client = cls.get_client()
 
@@ -186,6 +187,7 @@ class Saml2(LoginProvider):
         if request.session[cls.session_data_key].get("cpr") or request.session[
             cls.session_data_key
         ].get("cvr"):
+            print(f"redirecting to {success_url}")
             return HttpResponseRedirect(success_url)
         else:
             return redirect(

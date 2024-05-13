@@ -32,14 +32,18 @@ class LoginCallbackView(TemplateView):
         return self.handle(request)
 
     def handle(self, request):
+        print(f"LoginCallbackView session: {dict(self.request.session)}")
         try:
             redirect_to = getattr(
                 settings, "LOGIN_MITID_REDIRECT_URL", settings.LOGIN_REDIRECT_URL
             )
             if "backpage" in request.session:
                 backpage = request.session.pop("backpage")
+                print(f"LoginCallback popped {backpage} off session")
                 if backpage:
                     redirect_to = backpage
+            else:
+                print("backpage was not in session")
             return login_provider_class().handle_login_callback(
                 request=request,
                 success_url=redirect_to,
