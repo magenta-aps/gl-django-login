@@ -15,7 +15,7 @@ class LoginView(View):
     def get(self, request):
         back = request.GET.get("back") or request.GET.get(
             REDIRECT_FIELD_NAME
-        ) or request.session.get("backpage")
+        ) or request.COOKIES.get("back")
 
         provider = login_provider_class()
         request.session["login_method"] = provider.__name__
@@ -43,11 +43,9 @@ class LoginCallbackView(TemplateView):
             redirect_to = getattr(
                 settings, "LOGIN_MITID_REDIRECT_URL", settings.LOGIN_REDIRECT_URL
             )
-            if "backpage" in request.session:
-                backpage = request.session.pop("backpage") or request.COOKIES.get("back")
-                print(f"LoginCallback popped {backpage} off session")
-                if backpage and backpage != "None":
-                    redirect_to = backpage
+            backpage = request.COOKIES.get("back")
+            if backpage and backpage != "None":
+                redirect_to = backpage
             else:
                 print("backpage was not in session")
             return login_provider_class().handle_login_callback(
