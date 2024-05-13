@@ -90,6 +90,7 @@ class Saml2(LoginProvider):
 
     @classmethod
     def clear_session(cls, session):
+        print("Saml2.clear_session")
         extra_session_keys = getattr(settings, "LOGIN_SESSION_KEYS", [])
         for key in [cls.session_data_key, "cvr", "cpr", "saml"] + extra_session_keys:
             if key in session:

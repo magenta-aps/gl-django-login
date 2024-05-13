@@ -32,7 +32,8 @@ class LoginCallbackView(TemplateView):
         return self.handle(request)
 
     def handle(self, request):
-        print(f"LoginCallbackView session: {dict(self.request.session)}")
+        print(f"LoginCallbackView session_id: {request.session.session_key}")
+        print(f"LoginCallbackView session: {dict(request.session)}")
         try:
             redirect_to = getattr(
                 settings, "LOGIN_MITID_REDIRECT_URL", settings.LOGIN_REDIRECT_URL
