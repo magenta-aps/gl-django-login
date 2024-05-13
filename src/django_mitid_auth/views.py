@@ -15,7 +15,7 @@ class LoginView(View):
     def get(self, request):
         request.session["backpage"] = request.GET.get("back") or request.GET.get(
             REDIRECT_FIELD_NAME
-        )
+        ) or request.session.get("backpage")
         provider = login_provider_class()
         request.session["login_method"] = provider.__name__
         return provider.login(request)
