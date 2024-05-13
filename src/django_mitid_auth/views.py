@@ -1,3 +1,5 @@
+from datetime import timedelta, datetime
+
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.shortcuts import redirect
@@ -13,12 +15,16 @@ from django_mitid_auth.middleware import LoginManager
 
 class LoginView(View):
     def get(self, request):
-        request.session["backpage"] = request.GET.get("back") or request.GET.get(
+        back = request.GET.get("back") or request.GET.get(
             REDIRECT_FIELD_NAME
-        )
+        ) or request.COOKIES.get("back")
+
         provider = login_provider_class()
         request.session["login_method"] = provider.__name__
-        return provider.login(request)
+        response = provider.login(request)
+        if back and back != "None":
+            response.set_cookie("back", back, secure=True, httponly=True, samesite="None", expires=datetime.utcnow() + timedelta(seconds=600))
+        return response
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -36,10 +42,9 @@ class LoginCallbackView(TemplateView):
             redirect_to = getattr(
                 settings, "LOGIN_MITID_REDIRECT_URL", settings.LOGIN_REDIRECT_URL
             )
-            if "backpage" in request.session:
-                backpage = request.session.pop("backpage")
-                if backpage:
-                    redirect_to = backpage
+            backpage = request.COOKIES.get("back")
+            if backpage and backpage != "None":
+                redirect_to = backpage
             return login_provider_class().handle_login_callback(
                 request=request,
                 success_url=redirect_to,
