@@ -50,13 +50,17 @@ class LoginManager:
         return redirect(self.get_login_redirection_url(request))
 
     def check_whitelist(self, path):
+        print(f"Checking path {path} against whitelist {self.white_listed_urls}")
         for p in (path, path.rstrip("/")):
             for item in self.white_listed_urls:
                 if type(item) is re.Pattern:
                     if item.match(p):
+                        print("Path is whitelisted")
                         return True
                 elif p == item:
+                    print("Path is whitelisted")
                     return True
+        print("Path is not whitelisted")
 
     def __call__(self, request):
         if not self.check_whitelist(request.path) and not request.path.startswith(
