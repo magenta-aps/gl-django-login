@@ -13,14 +13,14 @@ from django_mitid_auth.middleware import LoginManager
 
 class LoginView(View):
     def get(self, request):
-        back = request.session["backpage"] = request.GET.get("back") or request.GET.get(
+        back = request.GET.get("back") or request.GET.get(
             REDIRECT_FIELD_NAME
         ) or request.session.get("backpage")
 
         provider = login_provider_class()
         request.session["login_method"] = provider.__name__
         response = provider.login(request)
-        if back:
+        if back and back != "None":
             response.set_cookie("back", back, secure=True, httponly=True, samesite="None")
         return response
 
