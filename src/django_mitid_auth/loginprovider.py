@@ -23,7 +23,6 @@ class LoginProvider:
 
     @classmethod
     def clear_session(cls, session):
-        print("LoginProvider.clear_session")
         if cls.session_data_key in session:
             del session[cls.session_data_key]
         session.save()

@@ -36,9 +36,6 @@ class LoginCallbackView(TemplateView):
         return self.handle(request)
 
     def handle(self, request):
-        print(f"LoginCallbackView cookies: {request.COOKIES}")
-        print(f"LoginCallbackView session_id: {request.session.session_key}")
-        print(f"LoginCallbackView session: {dict(request.session)}")
         try:
             redirect_to = getattr(
                 settings, "LOGIN_MITID_REDIRECT_URL", settings.LOGIN_REDIRECT_URL
@@ -46,8 +43,6 @@ class LoginCallbackView(TemplateView):
             backpage = request.COOKIES.get("back")
             if backpage and backpage != "None":
                 redirect_to = backpage
-            else:
-                print("backpage was not in session")
             return login_provider_class().handle_login_callback(
                 request=request,
                 success_url=redirect_to,

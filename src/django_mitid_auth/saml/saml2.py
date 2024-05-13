@@ -62,8 +62,6 @@ class Saml2(LoginProvider):
 
     @classmethod
     def login(cls, request, auth_params=None):
-        print(f"Saml2 session_id: {request.session.session_key}")
-        print(f"Saml2 session: {dict(request.session)}")
         """Kick off a SAML login request."""
         client = cls.get_client()
         saml_settings = cls.saml_settings()
@@ -90,7 +88,6 @@ class Saml2(LoginProvider):
 
     @classmethod
     def clear_session(cls, session):
-        print("Saml2.clear_session")
         extra_session_keys = getattr(settings, "LOGIN_SESSION_KEYS", [])
         for key in [cls.session_data_key, "cvr", "cpr", "saml"] + extra_session_keys:
             if key in session:
@@ -123,7 +120,6 @@ class Saml2(LoginProvider):
 
     @classmethod
     def handle_login_callback(cls, request, success_url):
-        print(f"handle_login_callback success_url: {success_url}")
         """Handle an AuthenticationResponse from the IdP."""
         client = cls.get_client()
 
@@ -188,7 +184,6 @@ class Saml2(LoginProvider):
         if request.session[cls.session_data_key].get("cpr") or request.session[
             cls.session_data_key
         ].get("cvr"):
-            print(f"redirecting to {success_url}")
             return HttpResponseRedirect(success_url)
         else:
             return redirect(
