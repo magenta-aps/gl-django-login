@@ -62,6 +62,8 @@ class Saml2(LoginProvider):
 
     @classmethod
     def login(cls, request, auth_params=None):
+        print(f"Saml2 session_id: {request.session.session_key}")
+        print(f"Saml2 session: {dict(request.session)}")
         """Kick off a SAML login request."""
         client = cls.get_client()
         saml_settings = cls.saml_settings()
