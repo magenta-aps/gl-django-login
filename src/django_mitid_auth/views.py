@@ -20,7 +20,8 @@ class LoginView(View):
         provider = login_provider_class()
         request.session["login_method"] = provider.__name__
         response = provider.login(request)
-        response.set_cookie("back", back, secure=True, httponly=True, samesite="None")
+        if back:
+            response.set_cookie("back", back, secure=True, httponly=True, samesite="None")
         return response
 
 
