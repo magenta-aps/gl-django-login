@@ -1,3 +1,5 @@
+from datetime import timedelta, datetime
+
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.shortcuts import redirect
@@ -21,7 +23,7 @@ class LoginView(View):
         request.session["login_method"] = provider.__name__
         response = provider.login(request)
         if back and back != "None":
-            response.set_cookie("back", back, secure=True, httponly=True, samesite="None")
+            response.set_cookie("back", back, secure=True, httponly=True, samesite="None", expires=datetime.utcnow() + timedelta(seconds=600))
         return response
 
 
