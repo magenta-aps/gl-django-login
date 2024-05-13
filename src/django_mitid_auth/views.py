@@ -46,7 +46,7 @@ class LoginCallbackView(TemplateView):
             if "backpage" in request.session:
                 backpage = request.session.pop("backpage") or request.COOKIES.get("back")
                 print(f"LoginCallback popped {backpage} off session")
-                if backpage:
+                if backpage and backpage != "None":
                     redirect_to = backpage
             else:
                 print("backpage was not in session")
