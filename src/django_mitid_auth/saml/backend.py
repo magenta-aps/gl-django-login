@@ -43,18 +43,23 @@ class Saml2Backend(ModelBackend):
             assertion_info=None,
             **kwargs,
     ):
+        print("AUTHENTICATE")
         if saml_data is None:
+            print("bail 1")
             return None
         if "ava" not in saml_data:
             logger.error('ava not found in saml data')
+            print("bail 2")
             return None
 
         if saml_data is None:
             logger.info("Session info is None")
+            print("bail 3")
             return None
 
         if "ava" not in saml_data:
             logger.error('"ava" key not found in session_info')
+            print("bail 4")
             return None
 
         user_model = get_user_model()
@@ -64,12 +69,14 @@ class Saml2Backend(ModelBackend):
 
         if not attributes.get("username"):
             logger.error("Could not get identifier for username in saml data")
+            print("bail 5")
             return None
 
         user, created = user_model.objects.update_or_create(
             **{"username": attributes["username"]},
             defaults=attributes,
         )
+        print(f"created user {user}")
         if created:
             logger.info(
                 "Created new User object from saml login (username='%s')", user.username
