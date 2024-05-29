@@ -11,13 +11,13 @@ class DummyProvider(LoginProvider):
 
     @classmethod
     def enabled(cls):
-        return True if getattr(settings, "DEFAULT_CVR") or getattr(settings, "DEFAULT_CPR") else False
+        return True if getattr(settings, "DEFAULT_CVR", None) or getattr(settings, "DEFAULT_CPR", None) else False
 
     @classmethod
     def login(cls, request):
         request.session[cls.session_data_key] = {
-            "CVR": settings.DEFAULT_CVR,
-            "CPR": settings.DEFAULT_CPR,
+            "CVR": getattr(settings, "DEFAULT_CVR", None),
+            "CPR": getattr(settings, "DEFAULT_CPR", None),
         }
 
     @classmethod
