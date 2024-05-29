@@ -32,7 +32,7 @@ class Saml2Backend(ModelBackend):
             except KeyError:
                 raise Exception(f"SAML data does not contain requested key {saml_attribute}")
         if type(value) is list:
-            value = list[0]
+            value = value[0]
         return value
 
     def authenticate(
