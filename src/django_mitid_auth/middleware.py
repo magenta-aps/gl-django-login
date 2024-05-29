@@ -99,7 +99,7 @@ class LoginManager:
             populate_dummy_session = getattr(settings, "POPULATE_DUMMY_SESSION", False)
             if populate_dummy_session:
                 request.session[cls.session_data_key] = populate_dummy_session()
-            elif settings.DEFAULT_CVR or settings.DEFAULT_CPR:
+            elif getattr(settings, "DEFAULT_CVR") or getattr(settings, "DEFAULT_CPR"):
                 request.session[cls.session_data_key] = {
                     "cvr": getattr(settings, "DEFAULT_CVR"),
                     "cpr": getattr(settings, "DEFAULT_CPR"),
