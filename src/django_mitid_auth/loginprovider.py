@@ -15,7 +15,7 @@ class LoginProvider:
 
     @classmethod
     def is_logged_in(cls, request):
-        print(request.session.get(cls.session_data_key)+" or "+request.user.is_authenticated)
+        print(f"{request.session.get(cls.session_data_key)} or {request.user.is_authenticated}")
         return (
             True
             if request.session.get(cls.session_data_key) or request.user.is_authenticated
