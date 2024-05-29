@@ -110,6 +110,7 @@ class OpenId(LoginProvider):
 
     @classmethod
     def handle_login_callback(cls, request, success_url):
+        print("handle_login_callback")
         nonce = request.session.get("oid_nonce")
         if nonce:
             # Make sure that nonce is not used twice
