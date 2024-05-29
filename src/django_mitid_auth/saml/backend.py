@@ -64,7 +64,7 @@ class Saml2Backend(ModelBackend):
 
         user_model = get_user_model()
         attributes = {}
-        for user_key in self.map:
+        for user_key in self.map.keys():
             attributes[user_key] = self.get_usermodel_attribute_value(saml_data["ava"], user_key)
 
         if not attributes.get("username"):
