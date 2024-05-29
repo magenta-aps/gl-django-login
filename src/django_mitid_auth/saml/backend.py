@@ -43,11 +43,6 @@ class Saml2Backend(ModelBackend):
             assertion_info=None,
             **kwargs,
     ):
-        user = super().authenticate(request, create_unknown_user=True,
-                                    assertion_info=None,
-                                    **kwargs,)
-        if user:
-            return user
         print("AUTHENTICATE")
         if saml_data is None:
             print("bail 1")
