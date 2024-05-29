@@ -42,6 +42,7 @@ class LoginCallbackView(TemplateView):
             redirect_to = getattr(
                 settings, "LOGIN_MITID_REDIRECT_URL", settings.LOGIN_REDIRECT_URL
             )
+            print(f"redirect to: {redirect_to}")
             return login_provider_class().handle_login_callback(
                 request=request,
                 success_url=redirect_to,
