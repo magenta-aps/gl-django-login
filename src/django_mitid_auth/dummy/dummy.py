@@ -11,7 +11,7 @@ class DummyProvider(LoginProvider):
 
     @classmethod
     def enabled(cls):
-        return True if settings.DEFAULT_CVR or settings.DEFAULT_CPR else False
+        return True if getattr(settings, "DEFAULT_CVR") or getattr(settings, "DEFAULT_CPR") else False
 
     @classmethod
     def login(cls, request):
