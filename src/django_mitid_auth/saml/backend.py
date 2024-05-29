@@ -72,6 +72,7 @@ class Saml2Backend(ModelBackend):
             print("bail 5")
             return None
 
+        print(f"user attributes: {attributes}")
         user, created = user_model.objects.update_or_create(
             **{"username": attributes["username"]},
             defaults=attributes,
