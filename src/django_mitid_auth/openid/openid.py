@@ -224,7 +224,6 @@ class OpenId(LoginProvider):
                 # always delete the state so it is not reused
                 del request.session["oid_state"]
                 # after the oauth flow is done and we have the user_info redirect to the original page or the frontpage
-                print(f"redirecting to {success_url}")
                 return HttpResponseRedirect(success_url)
 
     @classmethod
