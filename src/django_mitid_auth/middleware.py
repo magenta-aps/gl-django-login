@@ -64,6 +64,7 @@ class LoginManager:
         ):  # When any non-whitelisted page is loaded, check if we are authenticated
             if self.enabled:
                 if self.provider.is_logged_in(request):
+                    print("NOT LOGGED IN")
                     return self.get_response(request)
                 else:
                     if self.can_bypass:
