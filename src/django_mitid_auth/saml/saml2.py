@@ -181,6 +181,14 @@ class Saml2(LoginProvider):
             else None,
             request.session.session_key,
         )
+        if not set(request.session["saml"]["ava"].get("levelofassurance")).intersection({"Substantial", "High"}):
+            return redirect(
+                getattr(
+                    settings,
+                    "LOGIN_ASSURANCE_LEVEL",
+                    reverse(f"{namespace}:saml:login-assurance"),
+                )
+            )
         if request.session[cls.session_data_key].get("cpr") or request.session[
             cls.session_data_key
         ].get("cvr"):
