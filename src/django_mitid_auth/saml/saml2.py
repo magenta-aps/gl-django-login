@@ -185,7 +185,7 @@ class Saml2(LoginProvider):
             return redirect(
                 getattr(
                     settings,
-                    "LOGIN_ASSURANCE_LEVEL",
+                    "LOGIN_ASSURANCE_LEVEL_URL",
                     reverse(f"{namespace}:saml:login-assurance"),
                 )
             )
