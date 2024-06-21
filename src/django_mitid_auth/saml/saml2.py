@@ -182,7 +182,7 @@ class Saml2(LoginProvider):
             request.session.session_key,
         )
         print(request.session["saml"]["ava"])
-        if not set(request.session["saml"]["ava"].get("authenticationassurancelevel")).intersection({"Substantial", "Betydelig", "High", "Høj"}):
+        if not set(request.session["saml"]["ava"].get("levelofassurance")).intersection({"Substantial", "Betydelig", "High", "Høj"}):
             return redirect(
                 getattr(
                     settings,
