@@ -182,12 +182,12 @@ class Saml2(LoginProvider):
             request.session.session_key,
         )
         print(request.session["saml"]["ava"])
-        if request.session["saml"]["ava"].get("authenticationassurancelevel") not in ("Betydelig", "Høj"):
+        if request.session["saml"]["ava"].get("authenticationassurancelevel") not in ("Substantial", "Betydelig", "High", "Høj"):
             return redirect(
                 getattr(
                     settings,
                     "LOGIN_ASSURANCE_LEVEL",
-                    reverse(f"{namespace}:saml:login-repeat"),
+                    reverse(f"{namespace}:saml:login-assurance"),
                 )
             )
         if request.session[cls.session_data_key].get("cpr") or request.session[
