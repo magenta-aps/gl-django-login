@@ -17,7 +17,7 @@ class LoginProvider:
     def is_logged_in(cls, request):
         return (
             True
-            if request.session.get(cls.session_data_key) or request.user.is_authenticated
+            if request.session.get(cls.session_data_key) or (hasattr(request, "user") and request.user.is_authenticated)
             else False
         )
 
