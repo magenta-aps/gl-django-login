@@ -36,4 +36,14 @@ urlpatterns = [
         ),
         name="login-no-cprcvr",
     ),
+    path(
+        "error/login-assurance/",
+        AccessDeniedView.as_view(
+            template_name="django_mitid_auth/login_assurance.html",
+            extra_context={
+                "login_url": reverse_lazy(f"{settings.LOGIN_NAMESPACE}:login")
+            },
+        ),
+        name="login-assurance",
+    ),
 ]
