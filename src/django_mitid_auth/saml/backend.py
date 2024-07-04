@@ -19,7 +19,7 @@ class Saml2Backend(ModelBackend):
     }
 
     def has_module_perms(self, user_obj, app_label):
-        print(self.get_all_permissions(user_obj))
+        print(f"has_module_perms: {self.get_all_permissions(user_obj)}")
         return user_obj.is_active and any(
             perm[: perm.index(".")] == app_label
             for perm in self.get_all_permissions(user_obj)
@@ -30,7 +30,7 @@ class Saml2Backend(ModelBackend):
             return set()
         if not hasattr(user_obj, "_perm_cache"):
             user_obj._perm_cache = super().get_all_permissions(user_obj)
-        print(user_obj._perm_cache)
+        print(f"cache: {user_obj._perm_cache}")
         return user_obj._perm_cache
 
     @classmethod
