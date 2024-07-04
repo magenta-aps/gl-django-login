@@ -18,6 +18,13 @@ class Saml2Backend(ModelBackend):
         "email": "email",
     }
 
+    def has_module_perms(self, user_obj, app_label):
+        print(self.get_all_permissions(user_obj))
+        return user_obj.is_active and any(
+            perm[: perm.index(".")] == app_label
+            for perm in self.get_all_permissions(user_obj)
+        )
+
     @classmethod
     def get_usermodel_attribute_value(cls, ava: dict, key: str) -> str:
         try:
