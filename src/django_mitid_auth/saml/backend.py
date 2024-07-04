@@ -25,6 +25,14 @@ class Saml2Backend(ModelBackend):
             for perm in self.get_all_permissions(user_obj)
         )
 
+    def get_all_permissions(self, user_obj, obj=None):
+        if not user_obj.is_active or user_obj.is_anonymous or obj is not None:
+            return set()
+        if not hasattr(user_obj, "_perm_cache"):
+            user_obj._perm_cache = super().get_all_permissions(user_obj)
+        print(user_obj._perm_cache)
+        return user_obj._perm_cache
+
     @classmethod
     def get_usermodel_attribute_value(cls, ava: dict, key: str) -> str:
         try:
