@@ -33,6 +33,16 @@ class Saml2Backend(ModelBackend):
         print(f"cache: {user_obj._perm_cache}")
         return user_obj._perm_cache
 
+    def get_user_permissions(self, user_obj, obj=None):
+        x = super().get_user_permissions(user_obj, obj)
+        print(f"get_user_permissions: {x}")
+        return x
+
+    def get_group_permissions(self, user_obj, obj=None):
+        x = super().get_group_permissions(user_obj, obj)
+        print(f"get_group_permissions: {x}")
+        return x
+
     @classmethod
     def get_usermodel_attribute_value(cls, ava: dict, key: str) -> str:
         try:
