@@ -30,7 +30,7 @@ class Saml2Backend(ModelBackend):
             try:
                 value = ava[saml_attribute]
             except KeyError:
-                raise Exception(f"SAML data does not contain requested key {saml_attribute}")
+                raise KeyError(f"SAML data does not contain requested key {saml_attribute}")
         if type(value) is list:
             value = value[0]
         return value
@@ -61,7 +61,10 @@ class Saml2Backend(ModelBackend):
         user_model = get_user_model()
         attributes = {}
         for user_key in self.map.keys():
-            attributes[user_key] = self.get_usermodel_attribute_value(saml_data["ava"], user_key)
+            try:
+                attributes[user_key] = self.get_usermodel_attribute_value(saml_data["ava"], user_key)
+            except KeyError:
+                pass
 
         if not attributes.get("username"):
             logger.error("Could not get identifier for username in saml data")
