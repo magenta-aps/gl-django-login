@@ -52,6 +52,7 @@ class LoginManager:
     def check_whitelist(self, path):
         for p in (path, path.rstrip("/")):
             for item in self.white_listed_urls:
+                print(f"Checking {p} against {item}")
                 if type(item) is re.Pattern:
                     if item.match(p):
                         return True
@@ -62,6 +63,7 @@ class LoginManager:
         if not self.check_whitelist(request.path) and not request.path.startswith(
             settings.STATIC_URL
         ):  # When any non-whitelisted page is loaded, check if we are authenticated
+            print(f"{request.path} is not whitelisted")
             if self.enabled:
                 if self.provider.is_logged_in(request):
                     return self.get_response(request)
@@ -83,11 +85,14 @@ class LoginManager:
                                 )
                             )
                     else:
+                        print("redirecting to login")
                         return self.redirect_to_login(request)
             else:
                 # Not enabled; fall back to dummy user if available
                 self.set_dummy_session(request)
 
+        else:
+            print(f"{request.path} is whitelisted")
         return self.get_response(request)
 
     @classmethod
