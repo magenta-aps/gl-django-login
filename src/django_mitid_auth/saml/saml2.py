@@ -14,6 +14,7 @@ from saml2.cache import Cache
 from saml2.client import Saml2Client
 from saml2.config import Config
 from saml2.metadata import entity_descriptor, metadata_tostring_fix
+from saml2.response import StatusAuthnFailed, AuthnResponse
 from saml2.saml import name_id_from_string, NameID
 from saml2.validate import valid_instance, ResponseLifetimeExceed
 from xmltodict import parse as xml_to_dict
@@ -120,6 +121,7 @@ class Saml2(LoginProvider):
 
     @classmethod
     def handle_login_callback(cls, request, success_url):
+        print("handle_login_callback")
         """Handle an AuthenticationResponse from the IdP."""
         client = cls.get_client()
 
@@ -128,10 +130,11 @@ class Saml2(LoginProvider):
         namespace = settings.LOGIN_NAMESPACE
 
         try:
-            # authn_response is of type saml2.response.AuthnResponse
-            authn_response = client.parse_authn_request_response(
+            authn_response: AuthnResponse = client.parse_authn_request_response(
                 samlresponse, "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
             )
+            print(authn_response.authn_info())
+            print(authn_response.session_info())
             if caches["saml"].get("message_id__" + authn_response.in_response_to):
                 caches["saml"].set("message_id__" + authn_response.in_response_to, None)
             else:
@@ -142,6 +145,11 @@ class Saml2(LoginProvider):
                         reverse(f"{namespace}:saml:login-repeat"),
                     )
                 )
+            try:
+                print(authn_response.authn_statement_ok())
+            except Exception as e:
+                print("Exception in authn_statement_ok:")
+                print(e)
         except ResponseLifetimeExceed:
             return redirect(
                 getattr(
@@ -150,6 +158,12 @@ class Saml2(LoginProvider):
                     reverse(f"{namespace}:saml:login-timeout"),
                 )
             )
+        except StatusAuthnFailed:
+            # TODO: Show error
+            print("StatusAuthnFailed")
+            raise
+
+
         request.session[cls.session_data_key] = {
             key: values[0] if type(values) is list and len(values) == 1 else values
             for key, values in authn_response.get_identity().items()
