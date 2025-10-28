@@ -51,8 +51,8 @@ class LoginManager:
 
     def check_whitelist(self, path):
         for p in (path, path.rstrip("/")):
+            print(f"Checking {p} against {self.white_listed_urls}")
             for item in self.white_listed_urls:
-                print(f"Checking {p} against {item}")
                 if type(item) is re.Pattern:
                     if item.match(p):
                         return True
