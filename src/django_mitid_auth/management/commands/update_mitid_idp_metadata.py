@@ -37,14 +37,17 @@ class Command(BaseCommand):
         if not filename:
             raise CommandError("Local filename not configured, should be set in SAML.metadata.local[0]")
 
-        with open(filename, "rb") as file:
-            existing_metadata = file.read()
+        if file_exists:
+            with open(filename, "rb") as file:
+                existing_metadata = file.read()
+        else:
+            existing_metadata = None
 
         logger.info(f"Fetching IdP Metadata from {remote_url}")
         response = requests.get(remote_url)
         if response.status_code == 200:
             new_metadata = response.content
-            if existing_metadata == new_metadata:
+            if file_exists and existing_metadata == new_metadata:
                 logger.info("No changes to IdP Metadata")
             else:
                 with open(filename, "wb") as file:
