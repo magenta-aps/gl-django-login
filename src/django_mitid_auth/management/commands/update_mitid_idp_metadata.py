@@ -44,22 +44,28 @@ class Command(BaseCommand):
             existing_metadata = None
 
         logger.info(f"Fetching IdP Metadata from {remote_url}")
-        response = requests.get(remote_url)
-        if response.status_code == 200:
-            new_metadata = response.content
-            if file_exists and existing_metadata == new_metadata:
-                logger.info("No changes to IdP Metadata")
+        error = None
+        try:
+            response = requests.get(remote_url)
+            if response.status_code == 200:
+                new_metadata = response.content
+                if file_exists and existing_metadata == new_metadata:
+                    logger.info("No changes to IdP Metadata")
+                else:
+                    with open(filename, "wb") as file:
+                        file.write(new_metadata)
+                    logger.info(f"IdP Metadata updated in file {filename}")
             else:
-                with open(filename, "wb") as file:
-                    file.write(new_metadata)
-                logger.info(f"IdP Metadata updated in file {filename}")
-        else:
-            message = f"IdP Metadata download failed: {remote_url} returned {response.status_code}."
+                error = f"IdP Metadata download failed: {remote_url} returned {response.status_code}."
+        except ConnectionError:
+            error = f"IdP Metadata download failed: Connection error for {remote_url}."
+
+        if error:
             if file_exists:
-                message += " Cached file exists."
+                error += " Cached file exists."
                 if fail_on_remote_error:
-                    raise CommandError(message)
-                logger.warning(message)
+                    raise CommandError(error)
+                logger.warning(error)
             else:
-                message += " Cached file does not exist."
-                raise CommandError(message)
+                error += " Cached file does not exist."
+                raise CommandError(error)
