@@ -57,7 +57,7 @@ class Command(BaseCommand):
                     logger.info(f"IdP Metadata updated in file {filename}")
             else:
                 error = f"IdP Metadata download failed: {remote_url} returned {response.status_code}."
-        except ConnectionError:
+        except requests.exceptions.ConnectionError:
             error = f"IdP Metadata download failed: Connection error for {remote_url}."
 
         if error:
