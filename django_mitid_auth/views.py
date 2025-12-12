@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
@@ -7,7 +7,8 @@ from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic.base import View, TemplateView
+from django.views.generic.base import TemplateView, View
+
 from django_mitid_auth import login_provider_class
 from django_mitid_auth.exceptions import LoginException
 from django_mitid_auth.middleware import LoginManager
@@ -15,15 +16,24 @@ from django_mitid_auth.middleware import LoginManager
 
 class LoginView(View):
     def get(self, request):
-        back = request.GET.get("back") or request.GET.get(
-            REDIRECT_FIELD_NAME
-        ) or request.COOKIES.get("back")
+        back = (
+            request.GET.get("back")
+            or request.GET.get(REDIRECT_FIELD_NAME)
+            or request.COOKIES.get("back")
+        )
 
         provider = login_provider_class()
         request.session["login_method"] = provider.__name__
         response = provider.login(request)
         if back and back != "None":
-            response.set_cookie("back", back, secure=True, httponly=True, samesite="None", expires=datetime.utcnow() + timedelta(seconds=600))
+            response.set_cookie(
+                "back",
+                back,
+                secure=True,
+                httponly=True,
+                samesite="None",
+                expires=datetime.utcnow() + timedelta(seconds=600),
+            )
         return response
 
 

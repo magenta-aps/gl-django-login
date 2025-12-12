@@ -1,11 +1,11 @@
-from django.urls import path, include
+from django.urls import include, path
 
 from django_mitid_auth.apps import LoginConfig
 from django_mitid_auth.views import (
-    LoginView,
     LoginCallbackView,
-    LogoutView,
+    LoginView,
     LogoutCallback,
+    LogoutView,
 )
 
 app_name = LoginConfig.name

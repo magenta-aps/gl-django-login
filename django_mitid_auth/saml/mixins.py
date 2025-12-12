@@ -1,4 +1,5 @@
 from django.core.exceptions import PermissionDenied
+
 from django_mitid_auth.saml.oiosaml import OIOSaml
 
 

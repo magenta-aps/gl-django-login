@@ -7,6 +7,7 @@ from django.shortcuts import redirect
 from django.template.loader import get_template
 from django.urls import reverse
 from django.utils.http import urlencode
+
 from django_mitid_auth import login_provider_class
 
 
@@ -99,7 +100,9 @@ class LoginManager:
             populate_dummy_session = getattr(settings, "POPULATE_DUMMY_SESSION", False)
             if populate_dummy_session:
                 request.session[cls.session_data_key] = populate_dummy_session()
-            elif getattr(settings, "DEFAULT_CVR", None) or getattr(settings, "DEFAULT_CPR", None):
+            elif getattr(settings, "DEFAULT_CVR", None) or getattr(
+                settings, "DEFAULT_CPR", None
+            ):
                 request.session[cls.session_data_key] = {
                     "cvr": getattr(settings, "DEFAULT_CVR", None),
                     "cpr": getattr(settings, "DEFAULT_CPR", None),

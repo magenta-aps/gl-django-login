@@ -1,5 +1,6 @@
 from django.http.response import Http404
-from django.views.generic.base import View, TemplateView
+from django.views.generic.base import TemplateView, View
+
 from django_mitid_auth import login_provider_class
 from django_mitid_auth.saml.saml2 import Saml2
 

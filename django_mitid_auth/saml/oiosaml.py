@@ -2,9 +2,10 @@ import base64
 import copy
 import os
 
+from xmltodict import parse as xml_to_dict
+
 import django_mitid_auth.saml.oiosaml_attributemaps.attributemap
 from django_mitid_auth.saml.saml2 import Saml2
-from xmltodict import parse as xml_to_dict
 
 
 class OIOSaml(Saml2):

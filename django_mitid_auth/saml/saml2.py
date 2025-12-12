@@ -6,17 +6,17 @@ from django.contrib import auth
 from django.core.cache import caches
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
-from django.urls import reverse_lazy, reverse
-from django_mitid_auth.loginprovider import LoginProvider
-from saml2 import SamlBase
-from saml2 import md
+from django.urls import reverse, reverse_lazy
+from saml2 import SamlBase, md
 from saml2.cache import Cache
 from saml2.client import Saml2Client
 from saml2.config import Config
 from saml2.metadata import entity_descriptor, metadata_tostring_fix
-from saml2.saml import name_id_from_string, NameID
-from saml2.validate import valid_instance, ResponseLifetimeExceed
+from saml2.saml import NameID, name_id_from_string
+from saml2.validate import ResponseLifetimeExceed, valid_instance
 from xmltodict import parse as xml_to_dict
+
+from django_mitid_auth.loginprovider import LoginProvider
 
 logger = logging.getLogger(__name__)
 
@@ -155,9 +155,11 @@ class Saml2(LoginProvider):
             for key, values in authn_response.get_identity().items()
         }
         request.session["saml"] = {
-            key: value
-            if not isinstance(value, NameID)
-            else value.to_string().decode("utf-8")
+            key: (
+                value
+                if not isinstance(value, NameID)
+                else value.to_string().decode("utf-8")
+            )
             for key, value in authn_response.session_info().items()
         }
         cls.save_client(client)
@@ -172,16 +174,20 @@ class Saml2(LoginProvider):
             authn_response.name_id,
             request.session["saml"]["ava"].get("cpr"),
             request.session["saml"]["ava"].get("cvr"),
-            [
-                xml_to_dict(base64.b64decode(p).decode("utf-8"))
-                for p in request.session["saml"]["ava"]["privilege"]
-                if p
-            ]
-            if "privilege" in request.session["saml"]["ava"]
-            else None,
+            (
+                [
+                    xml_to_dict(base64.b64decode(p).decode("utf-8"))
+                    for p in request.session["saml"]["ava"]["privilege"]
+                    if p
+                ]
+                if "privilege" in request.session["saml"]["ava"]
+                else None
+            ),
             request.session.session_key,
         )
-        if not set(request.session["saml"]["ava"].get("levelofassurance")).intersection({"Substantial", "High"}):
+        if not set(request.session["saml"]["ava"].get("levelofassurance")).intersection(
+            {"Substantial", "High"}
+        ):
             return redirect(
                 getattr(
                     settings,
@@ -232,13 +238,15 @@ class Saml2(LoginProvider):
                 request.session["saml"].get("name_id"),
                 request.session["saml"]["ava"].get("cpr"),
                 request.session["saml"]["ava"].get("cvr"),
-                [
-                    xml_to_dict(base64.b64decode(p).decode("utf-8"))
-                    for p in request.session["saml"]["ava"]["privilege"]
-                    if p
-                ]
-                if "privilege" in request.session["saml"]["ava"]
-                else None,
+                (
+                    [
+                        xml_to_dict(base64.b64decode(p).decode("utf-8"))
+                        for p in request.session["saml"]["ava"]["privilege"]
+                        if p
+                    ]
+                    if "privilege" in request.session["saml"]["ava"]
+                    else None
+                ),
                 request.session.session_key,
             )
             try:
@@ -292,9 +300,11 @@ class Saml2(LoginProvider):
 
             logoutrequest_data = client.handle_logout_request(
                 request.GET["SAMLRequest"],
-                name_id=name_id_from_string(request.session["saml"]["name_id"])
-                if "saml" in request.session
-                else None,
+                name_id=(
+                    name_id_from_string(request.session["saml"]["name_id"])
+                    if "saml" in request.session
+                    else None
+                ),
                 binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
                 sign=True,
                 sign_alg=saml_settings["service"]["sp"]["signing_algorithm"],

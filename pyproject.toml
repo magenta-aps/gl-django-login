@@ -1,6 +1,41 @@
+[tool.poetry]
+name = "gl-mitid"
+version = "0.0.0"  # versioning handled by conventional commits
+description = "MitID middle layer"
+authors = ["Magenta ApS <info@magenta.dk>"]
+license = "MPL-2.0"
+readme = "README.md"
+homepage = "https://magenta.dk/"
+repository = "https://git.magenta.dk/gronlandsprojekter/gldjangologin"
+keywords = []
+packages = [{include = "django_mitid_auth"}]
+
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
-]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+xmltodict = "1.0.2"
+django = "^5"
+pysaml2 = "7.5.4"
+
+[tool.poetry.group.test.dependencies]
+coverage = "7.13.0"
+mypy = "1.19.0"
+pydantic = "2.12.5"
+types-xmltodict = "1.0.1.20250920"
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = "True"
+warn_unused_configs = "True"
+check_untyped_defs = "True"
+disallow_untyped_defs = "True"
+plugins = "pydantic.mypy"
+
+[tool.coverage.run]
+omit = []
+
+[tool.coverage.report]
+omit = []
