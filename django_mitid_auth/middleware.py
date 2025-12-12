@@ -1,8 +1,10 @@
 import re
+from typing import List
 from urllib.parse import quote_plus
 
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpRequest
+from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template.loader import get_template
 from django.urls import reverse
@@ -15,14 +17,14 @@ class LoginManager:
     session_data_key = getattr(settings, "LOGIN_SESSION_DATA_KEY", None) or "user_info"
 
     @property
-    def enabled(self):
+    def enabled(self) -> bool:
         return settings.LOGIN_PROVIDER_CLASS is not None
 
     @property
-    def can_bypass(self):
+    def can_bypass(self) -> bool:
         return self.enabled and settings.LOGIN_BYPASS_ENABLED
 
-    white_listed_urls = []
+    white_listed_urls: List[str] = []
 
     def __init__(self, get_response):
         self.white_listed_urls = list(settings.LOGIN_WHITELISTED_URLS)
@@ -40,17 +42,17 @@ class LoginManager:
                 reverse(f"{namespace}:logout-callback"),
             ]
 
-    def get_login_redirection_url(self, request):
+    def get_login_redirection_url(self, request: HttpRequest) -> str:
         backpage = quote_plus(request.path)
         if request.GET:
             backpage += "?" + urlencode(request.GET, True)
-        login_url = getattr(settings, "LOGIN_MITID_URL", settings.LOGIN_URL)
+        login_url = str(getattr(settings, "LOGIN_MITID_URL", settings.LOGIN_URL))
         return login_url + "?back=" + backpage
 
-    def redirect_to_login(self, request):
+    def redirect_to_login(self, request: HttpRequest) -> HttpResponse:
         return redirect(self.get_login_redirection_url(request))
 
-    def check_whitelist(self, path):
+    def check_whitelist(self, path) -> bool:
         for p in (path, path.rstrip("/")):
             for item in self.white_listed_urls:
                 if type(item) is re.Pattern:
@@ -58,8 +60,9 @@ class LoginManager:
                         return True
                 elif p == item:
                     return True
+        return False
 
-    def __call__(self, request):
+    def __call__(self, request: HttpRequest):
         if not self.check_whitelist(request.path) and not request.path.startswith(
             settings.STATIC_URL
         ):  # When any non-whitelisted page is loaded, check if we are authenticated
