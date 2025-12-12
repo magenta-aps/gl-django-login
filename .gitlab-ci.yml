@@ -1,23 +1,62 @@
 stages:
   - lint
-  - build
   - test
+  - coverage
+  - package
+  - release
+
+include:
+  - project: labs/salt-automation
+    file:
+      #      - gitlab-ci-templates/python/pytest.v1.yml  # Waiting for 3.12
+      - gitlab-ci-templates/common/cache.v1.yml
+
+      # Contains jobs for publishing to PyPI
+      - gitlab-ci-templates/python/pypi-cc.v1.yml
 
 variables:
-  IMAGE_DEV: ${CI_REGISTRY_IMAGE}:dev
+  PYTEST_COV_FAIL_UNDER: 70
+  PYTEST_COV_MODULE: django_mitid_auth
 
-
-# Lint stage
-#############
+# Common settings for linters to avoid code repetition
+# Needs can be used to specify dependencies
+# Allow failure is whether the pipeline succeeds on failure or not
 .lint-default: &lint-default
   stage: lint
   needs: []
-  image: python:3.8
+  services: []
+  allow_failure: false
 
-Lint Python:
+#  Keep the python version in sync with what's in production
+#  Consider using black instead?
+#  It's split into multiple script blocks as otherwise the pipeline succeeds even if the first command fails
+Lint:
   <<: *lint-default
+  image: python:3.12
   before_script:
-    - pip3 install flake8
-    #- pip3 install -r django/requirements.txt
+    - pip install flake8
+    - pip install black==24.4.1
+    - pip install isort==5.13.2
   script:
-    - flake8 --ignore E501,E226,W503 src/django_mitid_auth/
+    - flake8  --ignore=E203,E501,W503 .
+    - black --check --diff .
+    - isort --check-only --profile black --diff .
+#
+#MyPy:
+#  stage: lint
+#  image: python:3.12
+#  interruptible: true
+#  extends:
+#    - .cache:pip
+#    - .cache:poetry
+#  variables:
+#    PYPROJECT_PREFIX: ""
+#  before_script:
+#    - pip install mypy
+#    - cd ${CI_PROJECT_DIR}/${PYPROJECT_PREFIX}
+#    - !reference [.cache:poetry, before_script]
+#  script:
+#    - $POETRY_HOME/bin/poetry run mypy .
+#  cache:
+#    - !reference [.cache:pip, cache]
+#    - !reference [.cache:poetry, cache]
