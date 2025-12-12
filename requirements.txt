@@ -1,3 +1,0 @@
-django
-pysaml2==7.5.4
-xmltodict==0.13.0

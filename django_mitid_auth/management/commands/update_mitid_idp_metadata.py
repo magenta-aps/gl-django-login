@@ -12,7 +12,11 @@ class Command(BaseCommand):
     help = "Update MitID IdP metadata"
 
     def add_arguments(self, parser):
-        parser.add_argument("--fail-on-remote-error", action="store_true", help="Return status 1 on fetch error, even if a cached file already exists")
+        parser.add_argument(
+            "--fail-on-remote-error",
+            action="store_true",
+            help="Return status 1 on fetch error, even if a cached file already exists",
+        )
 
     def get_url(self):
         return settings.SAML.get("metadata_remote_container") or settings.SAML.get(
@@ -33,9 +37,13 @@ class Command(BaseCommand):
             os.path.exists(filename) and os.path.getsize(filename) > 0
         )
         if not remote_url:
-            raise CommandError("Remote url not configured, should be set in SAML.metadata_remote_container or SAML.metadata_remote")
+            raise CommandError(
+                "Remote url not configured, should be set in SAML.metadata_remote_container or SAML.metadata_remote"
+            )
         if not filename:
-            raise CommandError("Local filename not configured, should be set in SAML.metadata.local[0]")
+            raise CommandError(
+                "Local filename not configured, should be set in SAML.metadata.local[0]"
+            )
 
         if file_exists:
             with open(filename, "rb") as file:

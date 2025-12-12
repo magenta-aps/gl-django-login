@@ -1,6 +1,8 @@
 import logging
+
 from django.conf import settings
 from django.http import HttpResponseRedirect
+
 from django_mitid_auth.loginprovider import LoginProvider
 
 logger = logging.getLogger(__name__)
@@ -11,7 +13,12 @@ class DummyProvider(LoginProvider):
 
     @classmethod
     def enabled(cls):
-        return True if getattr(settings, "DEFAULT_CVR", None) or getattr(settings, "DEFAULT_CPR", None) else False
+        return (
+            True
+            if getattr(settings, "DEFAULT_CVR", None)
+            or getattr(settings, "DEFAULT_CPR", None)
+            else False
+        )
 
     @classmethod
     def login(cls, request):

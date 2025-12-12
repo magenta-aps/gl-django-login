@@ -1,6 +1,6 @@
 from django.urls import path
 
-from django_mitid_auth.views import LoginCallbackView, LogoutView, LogoutCallback
+from django_mitid_auth.views import LoginCallbackView, LogoutCallback, LogoutView
 
 app_name = "django_mitid_auth.saml"
 

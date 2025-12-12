@@ -2,18 +2,17 @@ import logging
 
 from django.conf import settings
 from django.core.exceptions import SuspiciousOperation
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse_lazy
-from django_mitid_auth.exceptions import LoginException
-from django_mitid_auth.loginprovider import LoginProvider
 from jwkest.jwk import rsa_load
 from oic.oauth2 import ErrorResponse
-from oic.oic import Client
-from oic.oic import rndstr
-from oic.oic.message import AuthorizationResponse
-from oic.oic.message import RegistrationResponse
+from oic.oic import Client, rndstr
+from oic.oic.message import AuthorizationResponse, RegistrationResponse
 from oic.utils.authn.client import CLIENT_AUTHN_METHOD
 from oic.utils.keyio import KeyBundle
+
+from django_mitid_auth.exceptions import LoginException
+from django_mitid_auth.loginprovider import LoginProvider
 
 logger = logging.getLogger(__name__)
 

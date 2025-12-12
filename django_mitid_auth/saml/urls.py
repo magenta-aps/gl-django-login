@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.urls import path, reverse_lazy
-from django_mitid_auth.saml.views import MetadataView, AccessDeniedView
+
+from django_mitid_auth.saml.views import AccessDeniedView, MetadataView
 
 app_name = "django_mitid_auth.saml"
 

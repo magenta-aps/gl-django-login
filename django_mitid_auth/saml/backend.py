@@ -30,24 +30,26 @@ class Saml2Backend(ModelBackend):
             try:
                 value = ava[saml_attribute]
             except KeyError:
-                raise KeyError(f"SAML data does not contain requested key {saml_attribute}")
+                raise KeyError(
+                    f"SAML data does not contain requested key {saml_attribute}"
+                )
         if type(value) is list:
             value = value[0]
         return value
 
     def authenticate(
-            self,
-            request,
-            saml_data=None,
-            create_unknown_user=True,
-            assertion_info=None,
-            **kwargs,
+        self,
+        request,
+        saml_data=None,
+        create_unknown_user=True,
+        assertion_info=None,
+        **kwargs,
     ):
         if saml_data is None:
             return None
 
         if "ava" not in saml_data:
-            logger.error('ava not found in saml data')
+            logger.error("ava not found in saml data")
             return None
 
         if saml_data is None:
@@ -62,7 +64,9 @@ class Saml2Backend(ModelBackend):
         attributes = {}
         for user_key in self.map.keys():
             try:
-                attributes[user_key] = self.get_usermodel_attribute_value(saml_data["ava"], user_key)
+                attributes[user_key] = self.get_usermodel_attribute_value(
+                    saml_data["ava"], user_key
+                )
             except KeyError:
                 pass
 
