@@ -20,13 +20,13 @@ class OIOSaml(Saml2):
         return saml_settings
 
     @staticmethod
-    def get_privileges(saml_claims: Dict[str, str]) -> dict|None:
+    def get_privileges(saml_claims: Dict[str, str]) -> dict | None:
         """
         Decode privileges claim as specified in
         https://digitaliser.dk/resource/2377872/artefact/OIOSAMLBasicPrivilegeProfile1_0_1.pdf?artefact=true&PID=2377876
         section 3.5
         """
-        privileges_base64: str|None = saml_claims.get("Privilege")
+        privileges_base64: str | None = saml_claims.get("Privilege")
         if privileges_base64:
             privileges_xml = base64.b64decode(privileges_base64)
             privileges_dict = xml_to_dict(privileges_xml)
@@ -34,7 +34,9 @@ class OIOSaml(Saml2):
         return None
 
     @classmethod
-    def get_log_dict(cls, request: HttpRequest, saml_auth, saml_claims:Dict[str, str]|None=None) -> dict:
+    def get_log_dict(
+        cls, request: HttpRequest, saml_auth, saml_claims: Dict[str, str] | None = None
+    ) -> dict:
         if saml_claims is None:
             saml_claims = {}
         return {

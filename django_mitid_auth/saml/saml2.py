@@ -64,7 +64,9 @@ class Saml2(LoginProvider):
         cache.set("client_identity_cache", client.users.cache._db)
 
     @classmethod
-    def login(cls, request: HttpRequest, auth_params: dict|None=None) -> HttpResponse:
+    def login(
+        cls, request: HttpRequest, auth_params: dict | None = None
+    ) -> HttpResponse:
         """Kick off a SAML login request."""
         client: Saml2Client = cls.get_client()
         saml_settings = cls.saml_settings()
@@ -122,7 +124,9 @@ class Saml2(LoginProvider):
         }
 
     @classmethod
-    def handle_login_callback(cls, request: HttpRequest, success_url: str) -> HttpResponse:
+    def handle_login_callback(
+        cls, request: HttpRequest, success_url: str
+    ) -> HttpResponse:
         """Handle an AuthenticationResponse from the IdP."""
         client = cls.get_client()
 
@@ -274,7 +278,7 @@ class Saml2(LoginProvider):
         return HttpResponseRedirect(redirect_to)
 
     @classmethod
-    def handle_logout_callback(cls, request: HttpRequest) -> HttpResponse|None:
+    def handle_logout_callback(cls, request: HttpRequest) -> HttpResponse | None:
         """Handle a LogoutResponse from the IdP."""
         client: Saml2Client = cls.get_client()
 

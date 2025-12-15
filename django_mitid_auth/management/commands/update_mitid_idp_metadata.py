@@ -18,12 +18,12 @@ class Command(BaseCommand):
             help="Return status 1 on fetch error, even if a cached file already exists",
         )
 
-    def get_url(self) -> str|None:
+    def get_url(self) -> str | None:
         return settings.SAML.get("metadata_remote_container") or settings.SAML.get(
             "metadata_remote"
         )
 
-    def get_cache_filename(self) -> str|None:
+    def get_cache_filename(self) -> str | None:
         if "local" in settings.SAML["metadata"] and len(
             settings.SAML["metadata"]["local"]
         ):

@@ -4,7 +4,6 @@ from urllib.parse import quote_plus
 
 from django.conf import settings
 from django.http import HttpResponse, HttpRequest
-from django.http.response import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.template.loader import get_template
 from django.urls import reverse
