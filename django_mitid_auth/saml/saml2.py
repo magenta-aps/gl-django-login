@@ -18,6 +18,7 @@ from saml2.saml import NameID, name_id_from_string
 from saml2.validate import ResponseLifetimeExceed, valid_instance
 from saml2.response import AuthnResponse
 from xmltodict import parse as xml_to_dict
+from requests import Response
 
 from django_mitid_auth.loginprovider import LoginProvider
 
@@ -38,6 +39,7 @@ class Saml2(LoginProvider):
 
     @classmethod
     def saml_settings(cls) -> dict:
+        assert type(settings.SAML) is dict
         return settings.SAML
 
     @classmethod
@@ -138,8 +140,11 @@ class Saml2(LoginProvider):
             authn_response: AuthnResponse = client.parse_authn_request_response(
                 samlresponse, "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
             )
-            if caches["saml"].get("message_id__" + authn_response.in_response_to):
-                caches["saml"].set("message_id__" + authn_response.in_response_to, None)
+            in_response_to: str | None = authn_response.in_response_to
+            if in_response_to is None:
+                raise BadRequest("Missing InResponseTo")
+            if caches["saml"].get("message_id__" + in_response_to):
+                caches["saml"].set("message_id__" + in_response_to, None)
             else:
                 return redirect(
                     getattr(
@@ -261,12 +266,20 @@ class Saml2(LoginProvider):
                     sign_alg=saml_settings["service"]["sp"]["signing_algorithm"],
                     sign=True,
                 )
-                logoutrequest_data = responses[idp_entity_id][1]
-                cls.save_client(client)
-                return HttpResponse(
-                    status=logoutrequest_data["status"],
-                    headers=logoutrequest_data["headers"],
-                )
+                if isinstance(responses, Response):
+                    return responses
+                if (
+                    isinstance(responses, tuple)
+                    and responses[1] == "504 Gateway Timeout"
+                ):
+                    return HttpResponse(status=504, content=responses[1])
+                if isinstance(responses, dict):
+                    logoutrequest_data = responses[idp_entity_id][1]
+                    cls.save_client(client)
+                    return HttpResponse(
+                        status=logoutrequest_data["status"],
+                        headers=logoutrequest_data["headers"],
+                    )
             except KeyError:
                 pass
         auth.logout(request)

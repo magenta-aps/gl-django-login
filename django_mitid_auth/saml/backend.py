@@ -25,7 +25,7 @@ class Saml2Backend(ModelBackend):
         except KeyError:
             raise Exception(f"attribute map does not contain key {key}")
         if callable(saml_attribute):
-            value = saml_attribute(ava)
+            value = str(saml_attribute(ava))
         else:
             try:
                 value = ava[saml_attribute]
