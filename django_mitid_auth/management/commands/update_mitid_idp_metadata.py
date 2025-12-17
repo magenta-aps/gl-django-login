@@ -1,9 +1,10 @@
 import logging
 import os.path
+from typing import Any
 
 import requests
 from django.conf import settings
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand, CommandError, CommandParser
 
 logger = logging.getLogger(__name__)
 
@@ -11,19 +12,24 @@ logger = logging.getLogger(__name__)
 class Command(BaseCommand):
     help = "Update MitID IdP metadata"
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
             "--fail-on-remote-error",
             action="store_true",
             help="Return status 1 on fetch error, even if a cached file already exists",
         )
 
-    def get_url(self):
-        return settings.SAML.get("metadata_remote_container") or settings.SAML.get(
-            "metadata_remote"
-        )
+    def as_string(self, data: Any) -> str | None:
+        if data is not None:
+            return str(data)
+        return None
 
-    def get_cache_filename(self):
+    def get_url(self) -> str | None:
+        return self.as_string(
+            settings.SAML.get("metadata_remote_container")
+        ) or self.as_string(settings.SAML.get("metadata_remote"))
+
+    def get_cache_filename(self) -> str | None:
         if "local" in settings.SAML["metadata"] and len(
             settings.SAML["metadata"]["local"]
         ):
