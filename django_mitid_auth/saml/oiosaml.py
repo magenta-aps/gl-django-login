@@ -3,7 +3,7 @@ import copy
 import os
 from typing import Dict
 
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest
 from xmltodict import parse as xml_to_dict
 
 import django_mitid_auth.saml.oiosaml_attributemaps.attributemap
