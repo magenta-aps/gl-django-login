@@ -6,19 +6,19 @@ from django.contrib import auth
 from django.contrib.sessions.backends.base import SessionBase
 from django.core.cache import caches
 from django.core.exceptions import BadRequest
-from django.http import HttpResponse, HttpResponseRedirect, HttpRequest
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
+from requests import Response
 from saml2 import SamlBase, md
 from saml2.cache import Cache
 from saml2.client import Saml2Client
 from saml2.config import Config
 from saml2.metadata import entity_descriptor, metadata_tostring_fix
+from saml2.response import AuthnResponse
 from saml2.saml import NameID, name_id_from_string
 from saml2.validate import ResponseLifetimeExceed, valid_instance
-from saml2.response import AuthnResponse
 from xmltodict import parse as xml_to_dict
-from requests import Response
 
 from django_mitid_auth.loginprovider import LoginProvider
 
