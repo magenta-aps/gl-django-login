@@ -3,15 +3,19 @@ import logging
 
 from django.conf import settings
 from django.contrib import auth
+from django.contrib.sessions.backends.base import SessionBase
 from django.core.cache import caches
-from django.http import HttpResponse, HttpResponseRedirect
+from django.core.exceptions import BadRequest
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
+from requests import Response
 from saml2 import SamlBase, md
 from saml2.cache import Cache
 from saml2.client import Saml2Client
 from saml2.config import Config
 from saml2.metadata import entity_descriptor, metadata_tostring_fix
+from saml2.response import AuthnResponse
 from saml2.saml import NameID, name_id_from_string
 from saml2.validate import ResponseLifetimeExceed, valid_instance
 from xmltodict import parse as xml_to_dict
@@ -34,11 +38,12 @@ class Saml2(LoginProvider):
     cached_metadata = None
 
     @classmethod
-    def saml_settings(cls):
+    def saml_settings(cls) -> dict:
+        assert type(settings.SAML) is dict
         return settings.SAML
 
     @classmethod
-    def get_client(cls):
+    def get_client(cls) -> Saml2Client:
         # This is not pretty, but we need to save the client's state between requests,
         # and it will not be pickled as a whole,
         # so extract the important bits and save/restore them
@@ -55,15 +60,17 @@ class Saml2(LoginProvider):
         return client
 
     @staticmethod
-    def save_client(client):
+    def save_client(client: Saml2Client):
         cache = caches["saml"]
         cache.set("client_state_cache", client.state)
         cache.set("client_identity_cache", client.users.cache._db)
 
     @classmethod
-    def login(cls, request, auth_params=None):
+    def login(
+        cls, request: HttpRequest, auth_params: dict | None = None
+    ) -> HttpResponse:
         """Kick off a SAML login request."""
-        client = cls.get_client()
+        client: Saml2Client = cls.get_client()
         saml_settings = cls.saml_settings()
         if auth_params is None:
             auth_params = {}
@@ -87,7 +94,7 @@ class Saml2(LoginProvider):
         )
 
     @classmethod
-    def clear_session(cls, session):
+    def clear_session(cls, session: SessionBase):
         extra_session_keys = getattr(settings, "LOGIN_SESSION_KEYS", [])
         for key in [cls.session_data_key, "cvr", "cpr", "saml"] + extra_session_keys:
             if key in session:
@@ -95,19 +102,19 @@ class Saml2(LoginProvider):
         session.save()
 
     @classmethod
-    def log_login(cls, request, saml_auth, saml_claims):
+    def log_login(cls, request: HttpRequest, saml_auth, saml_claims):
         status = "failed" if saml_auth.get_errors() else "successful"
         log_dict = cls.get_log_dict(request, saml_auth, saml_claims)
         logger.info(f"SAML Login {status}: {str(log_dict)}")
 
     @classmethod
-    def log_logout(cls, request, saml_auth, saml_claims):
+    def log_logout(cls, request: HttpRequest, saml_auth, saml_claims):
         status = "failed" if saml_auth.get_errors() else "successful"
         log_dict = cls.get_log_dict(request, saml_auth, saml_claims)
         logger.info(f"SAML Logout {status}: {str(log_dict)}")
 
     @classmethod
-    def get_log_dict(cls, request, saml_auth, saml_claims=None):
+    def get_log_dict(cls, request: HttpRequest, saml_auth, saml_claims=None):
         return {
             "ResponseID": saml_auth.get_last_message_id(),
             "AssertionID": saml_auth.get_last_assertion_id(),
@@ -119,7 +126,9 @@ class Saml2(LoginProvider):
         }
 
     @classmethod
-    def handle_login_callback(cls, request, success_url):
+    def handle_login_callback(
+        cls, request: HttpRequest, success_url: str
+    ) -> HttpResponse:
         """Handle an AuthenticationResponse from the IdP."""
         client = cls.get_client()
 
@@ -128,12 +137,14 @@ class Saml2(LoginProvider):
         namespace = settings.LOGIN_NAMESPACE
 
         try:
-            # authn_response is of type saml2.response.AuthnResponse
-            authn_response = client.parse_authn_request_response(
+            authn_response: AuthnResponse = client.parse_authn_request_response(
                 samlresponse, "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
             )
-            if caches["saml"].get("message_id__" + authn_response.in_response_to):
-                caches["saml"].set("message_id__" + authn_response.in_response_to, None)
+            in_response_to: str | None = authn_response.in_response_to
+            if in_response_to is None:
+                raise BadRequest("Missing InResponseTo")
+            if caches["saml"].get("message_id__" + in_response_to):
+                caches["saml"].set("message_id__" + in_response_to, None)
             else:
                 return redirect(
                     getattr(
@@ -223,9 +234,9 @@ class Saml2(LoginProvider):
         return samlresponse
 
     @classmethod
-    def logout(cls, request):
+    def logout(cls, request: HttpRequest):
         """Kick off a SAML logout request."""
-        client = cls.get_client()
+        client: Saml2Client = cls.get_client()
         saml_settings = cls.saml_settings()
         idp_entity_id = saml_settings["idp_entity_id"]
         if "saml" in request.session:
@@ -255,12 +266,20 @@ class Saml2(LoginProvider):
                     sign_alg=saml_settings["service"]["sp"]["signing_algorithm"],
                     sign=True,
                 )
-                logoutrequest_data = responses[idp_entity_id][1]
-                cls.save_client(client)
-                return HttpResponse(
-                    status=logoutrequest_data["status"],
-                    headers=logoutrequest_data["headers"],
-                )
+                if isinstance(responses, Response):
+                    return responses
+                if (
+                    isinstance(responses, tuple)
+                    and responses[1] == "504 Gateway Timeout"
+                ):
+                    return HttpResponse(status=504, content=responses[1])
+                if isinstance(responses, dict):
+                    logoutrequest_data = responses[idp_entity_id][1]
+                    cls.save_client(client)
+                    return HttpResponse(
+                        status=logoutrequest_data["status"],
+                        headers=logoutrequest_data["headers"],
+                    )
             except KeyError:
                 pass
         auth.logout(request)
@@ -272,9 +291,9 @@ class Saml2(LoginProvider):
         return HttpResponseRedirect(redirect_to)
 
     @classmethod
-    def handle_logout_callback(cls, request):
+    def handle_logout_callback(cls, request: HttpRequest) -> HttpResponse | None:
         """Handle a LogoutResponse from the IdP."""
-        client = cls.get_client()
+        client: Saml2Client = cls.get_client()
 
         if "SAMLResponse" in request.GET:
             logout_response = client.parse_logout_request_response(
@@ -294,24 +313,25 @@ class Saml2(LoginProvider):
                     settings, "LOGOUT_MITID_REDIRECT_URL", settings.LOGOUT_REDIRECT_URL
                 )
                 return HttpResponseRedirect(redirect_to)
+            else:
+                raise BadRequest(f"Logout failed: {msg}")
 
-        if "SAMLRequest" in request.GET:
+        elif "SAMLRequest" in request.GET:
             saml_settings = cls.saml_settings()
 
-            logoutrequest_data = client.handle_logout_request(
-                request.GET["SAMLRequest"],
-                name_id=(
-                    name_id_from_string(request.session["saml"]["name_id"])
-                    if "saml" in request.session
-                    else None
-                ),
-                binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
-                sign=True,
-                sign_alg=saml_settings["service"]["sp"]["signing_algorithm"],
-                sigalg=request.GET["SigAlg"],
-                signature=request.GET["Signature"],
-                relay_state=None,
-            )
+            if "saml" in request.session:
+                logoutrequest_data = client.handle_logout_request(
+                    request.GET["SAMLRequest"],
+                    name_id=name_id_from_string(request.session["saml"]["name_id"]),
+                    binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+                    sign=True,
+                    sign_alg=saml_settings["service"]["sp"]["signing_algorithm"],
+                    sigalg=request.GET["SigAlg"],
+                    signature=request.GET["Signature"],
+                    relay_state=None,
+                )
+            else:
+                raise BadRequest("Attempt to log out without a SAML session")
 
             if logoutrequest_data["status"] in (301, 302, 303):
                 auth.logout(request)
@@ -322,9 +342,11 @@ class Saml2(LoginProvider):
                 status=logoutrequest_data["status"],
                 headers=logoutrequest_data["headers"],
             )
+        else:
+            raise BadRequest("No SAMLResponse or SAMLRequest in request")
 
     @classmethod
-    def metadata(cls, request):
+    def metadata(cls, request: HttpRequest) -> HttpResponse:
         if cls.cached_metadata is None:
             # Render the metadata of this service.
             cnf = Config().load(cls.saml_settings())
