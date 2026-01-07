@@ -1,24 +1,27 @@
-[tool.poetry]
+[project]
 name = "gl-mitid"
 version = "0.0.0"  # versioning handled by conventional commits
 description = "MitID middle layer"
-authors = ["Magenta ApS <info@magenta.dk>"]
+authors = [
+    {name = "Magenta ApS", email="info@magenta.dk"}
+]
 license = "MPL-2.0"
 readme = "README.md"
 homepage = "https://magenta.dk/"
 repository = "https://git.magenta.dk/gronlandsprojekter/gldjangologin"
 keywords = []
 packages = [{include = "django_mitid_auth"}]
+requires-python = ">=3.11,<4.0"
+dependencies = [
+    "xmltodict==1.0.2",
+    "django>=5",
+    "pysaml2==7.5.4",
+]
+
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.dependencies]
-python = "^3.11"
-xmltodict = "1.0.2"
-django = "^5"
-pysaml2 = "7.5.4"
 
 [tool.poetry.group.test.dependencies]
 coverage = "7.13.0"
