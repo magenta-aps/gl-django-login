@@ -12,7 +12,7 @@ repository = "https://git.magenta.dk/gronlandsprojekter/gldjangologin"
 keywords = []
 requires-python = ">=3.11,<4.0"
 dependencies = [
-    "xmltodict==1.0.2",
+    "xmltodict==1.0.4",
     "django>=5",
     "pysaml2==7.5.4",
 ]
