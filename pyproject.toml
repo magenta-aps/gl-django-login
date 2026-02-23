@@ -31,7 +31,7 @@ pydantic = "2.12.5"
 types-xmltodict = "1.0.1.20250920"
 types-requests = "2.32.4.20250913"
 types-pysaml2 = "1.0.1"
-django-types = "0.22.0"
+django-types = "0.23.0"
 
 [tool.mypy]
 python_version = "3.12"
