@@ -5,6 +5,10 @@ from django.contrib.auth.views import redirect_to_login
 from django.shortcuts import redirect
 from django.utils.module_loading import import_string
 
+try:
+    from django.utils.deprecation import MiddlewareMixin
+except ImportError:
+    MiddlewareMixin = object
 """
 The following code is forked from https://github.com/labd/django-session-timeout
 We add functionality to allow a callable to be specified in settings.SESSION_EXPIRE_CALLABLE,
@@ -38,16 +42,11 @@ SOFTWARE.
 SESSION_TIMEOUT_KEY = "_session_init_timestamp_"
 
 
-class SessionTimeoutMiddleware:
-
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-
+class SessionTimeoutMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         if not hasattr(request, "session") or request.session.is_empty():
-            return self.get_response(request)
+            return
 
         init_time = request.session.setdefault(SESSION_TIMEOUT_KEY, time.time())
 
@@ -81,5 +80,3 @@ class SessionTimeoutMiddleware:
 
         if expire_since_last_activity and time.time() - init_time > grace_period:
             request.session[SESSION_TIMEOUT_KEY] = time.time()
-
-        return self.get_response(request)
