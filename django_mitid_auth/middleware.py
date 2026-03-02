@@ -133,4 +133,3 @@ class LoginManager:
     @staticmethod
     def get_whitelisted_urls():
         return LoginManager(None).white_listed_urls
-
