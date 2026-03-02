@@ -7,6 +7,9 @@ from django.utils.module_loading import import_string
 
 """
 The following code is forked from https://github.com/labd/django-session-timeout
+
+Copyright (c) 2017 Michael van Tellingen
+
 MIT License
 
 We add functionality to allow a callable to be specified in settings.SESSION_EXPIRE_CALLABLE, that is called when the session expires.
