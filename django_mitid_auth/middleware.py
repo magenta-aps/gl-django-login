@@ -145,9 +145,6 @@ MIT License
 We add functionality to allow a callable to be specified in settings.SESSION_EXPIRE_CALLABLE, that is called when the session expires.
 The callable is specified as a string reference to a function
 """
-
-
-
 SESSION_TIMEOUT_KEY = "_session_init_timestamp_"
 
 
