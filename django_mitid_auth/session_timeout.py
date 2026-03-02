@@ -39,9 +39,15 @@ SESSION_TIMEOUT_KEY = "_session_init_timestamp_"
 
 
 class SessionTimeoutMiddleware:
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+
+
     def process_request(self, request):
         if not hasattr(request, "session") or request.session.is_empty():
-            return
+            return self.get_response(request)
 
         init_time = request.session.setdefault(SESSION_TIMEOUT_KEY, time.time())
 
@@ -75,3 +81,5 @@ class SessionTimeoutMiddleware:
 
         if expire_since_last_activity and time.time() - init_time > grace_period:
             request.session[SESSION_TIMEOUT_KEY] = time.time()
+
+        return self.get_response(request)
