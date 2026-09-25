@@ -206,11 +206,9 @@ class Saml2(LoginProvider):
                     reverse(f"{namespace}:saml:login-assurance"),
                 )
             )
-        if request.session[cls.session_data_key].get("cpr") or request.session[
+        if not request.session[cls.session_data_key].get("cpr") or request.session[
             cls.session_data_key
         ].get("cvr"):
-            return HttpResponseRedirect(success_url)
-        else:
             return redirect(
                 getattr(
                     settings,
@@ -218,6 +216,9 @@ class Saml2(LoginProvider):
                     reverse(f"{namespace}:saml:login-no-cprcvr"),
                 )
             )
+        else:
+            # All ok
+            return HttpResponseRedirect(success_url)
 
     @staticmethod
     def workaround_replace_digest(samlresponse):
