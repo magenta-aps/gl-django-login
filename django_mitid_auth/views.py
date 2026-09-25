@@ -32,7 +32,7 @@ class LoginView(View):
                 back,
                 secure=True,
                 httponly=True,
-                samesite="Lax",
+                samesite="None",
                 expires=now + timedelta(seconds=600),
             )
         return response
@@ -51,7 +51,7 @@ class LoginCallbackView(TemplateView):
     def handle(self, request):
         try:
             redirect_to = request.COOKIES.get("back") or getattr(
-                settings, "LOGIN_MITID_REDIRECT_URL", settings.LOGIN_REDIRECT_URL
+                    settings, "LOGIN_MITID_REDIRECT_URL", settings.LOGIN_REDIRECT_URL
             )
             return login_provider_class().handle_login_callback(
                 request=request,
