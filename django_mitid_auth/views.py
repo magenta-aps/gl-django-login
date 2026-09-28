@@ -26,13 +26,14 @@ class LoginView(View):
         request.session["login_method"] = provider.__name__
         response = provider.login(request)
         if back and back != "None":
+            now = datetime.now().astimezone()
             response.set_cookie(
                 "back",
                 back,
                 secure=True,
                 httponly=True,
                 samesite="None",
-                expires=datetime.utcnow() + timedelta(seconds=600),
+                expires=now + timedelta(seconds=600),
             )
         return response
 
@@ -49,13 +50,15 @@ class LoginCallbackView(TemplateView):
 
     def handle(self, request):
         try:
-            redirect_to = getattr(
+            redirect_to = request.COOKIES.get("back") or getattr(
                 settings, "LOGIN_MITID_REDIRECT_URL", settings.LOGIN_REDIRECT_URL
             )
-            return login_provider_class().handle_login_callback(
+            response = login_provider_class().handle_login_callback(
                 request=request,
                 success_url=redirect_to,
             )
+            response.delete_cookie("back")
+            return response
         except LoginException as e:
             return self.render_to_response(
                 {
