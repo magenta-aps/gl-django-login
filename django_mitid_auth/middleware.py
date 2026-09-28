@@ -118,18 +118,5 @@ class LoginManager:
                 del request.session[key]
 
     @staticmethod
-    def get_backpage(request):
-        backpage = request.GET.get(
-            "back",
-            request.session.get(
-                "backpage",
-                getattr(
-                    settings, "LOGIN_MITID_REDIRECT_URL", settings.LOGIN_REDIRECT_URL
-                ),
-            ),
-        )
-        return backpage
-
-    @staticmethod
     def get_whitelisted_urls():
         return LoginManager(None).white_listed_urls
