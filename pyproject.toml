@@ -27,7 +27,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.group.test.dependencies]
 coverage = "7.14.0"
 mypy = "2.1.0"
-pydantic = "2.12.5"
+pydantic = "2.13.4"
 types-xmltodict = "1.0.1.20260508"
 types-requests = "2.33.0.20260513"
 types-pysaml2 = "1.0.1"
