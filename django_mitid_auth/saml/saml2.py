@@ -206,7 +206,7 @@ class Saml2(LoginProvider):
                     reverse(f"{namespace}:saml:login-assurance"),
                 )
             )
-        if not request.session[cls.session_data_key].get("cpr") or request.session[
+        if not request.session[cls.session_data_key].get("cpr") or not request.session[
             cls.session_data_key
         ].get("cvr"):
             return redirect(
